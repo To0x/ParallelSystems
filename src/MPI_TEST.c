@@ -32,34 +32,46 @@ int main(int argc, char* argv[]){
 	
 	// File Initializations
 	FILE *fp;
-	fp = fopen("./twitter-klein.json", "r+, ccs=UTF-8");
+	fp = _wfopen("./twitter-klein.json", "rb+, ccs=UTF-8");
 	if (fp == NULL) {
 		printf("file not accessible!\n");
 		exit(EXIT_FAILURE);
 	}
 
-	// JSON Initializations
-	jsmn_parser jp;
 	int errorCode = 0;
-	jsmn_init(&jp);
-	jsmntok_t tokens[10];
-
 	if (my_rank == 0){
 		/* create message */
 		sprintf(message, "Hello MPI World from process %d!", my_rank);
 		dest = 0;
 
+		int i = 0;
+		wchar_t c;
 		while (!feof(fp)) {
-			char *line = readLine(fp);
-			errorCode = jsmn_parse(&jp, line, strlen(line), tokens, 10);
-			//printf("ErrorCode %d\n", errorCode);
-			//TOKEN_PRINT(tokens[0]);
-			printf("%s\n", line);
+			wchar_t *line = readLine(fp);
+			wprintf(L"%ls\n", line);
+
+
+			c = *line;
+			while (c != 0) {
+				wprintf(L"%lc-", c);
+				c = *line++;
+			}
+
+			i++;
+			printf("\n");
+			//printf("%c", line);
+
+			if (i == 5)
+				break;
+
 		}
 
+		MPI_Finalize();
+		return 0;
+
 		/* use strlen+1 so that '\0' get transmitted */
-		MPI_Send(message, strlen(message)+1, MPI_CHAR,
-		   dest, tag, MPI_COMM_WORLD);
+		//MPI_Send(message, strlen(message)+1, MPI_CHAR,
+		//   dest, tag, MPI_COMM_WORLD);
 	}
 	else{
 		printf("Hello MPI World From process 0: Num processes: %d\n",p);

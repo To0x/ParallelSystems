@@ -11,7 +11,7 @@
 #include <locale.h>
 #include <wchar.h>
 
-char *readLine(FILE *file) {
+wchar_t *readLine(FILE *file) {
 
 	setlocale(LC_ALL, "es_US.UTF-8");
     if (file == NULL) {
@@ -19,20 +19,20 @@ char *readLine(FILE *file) {
         exit(1);
     }
 
-    int maximumLineLength = 128;
-    char *lineBuffer = (char *)malloc(sizeof(char) * maximumLineLength);
+    int maximumLineLength = 1024;
+    wchar_t *lineBuffer = (wchar_t *)malloc(sizeof(wchar_t) * maximumLineLength);
 
     if (lineBuffer == NULL) {
         printf("Error allocating memory for line buffer.");
         exit(1);
     }
 
-    char ch = getc(file);
+    wchar_t ch = fgetwc(file);
     int count = 0;
 
     while ((ch != '\n') && (ch != EOF)) {
         if (count == maximumLineLength) {
-            maximumLineLength += 128;
+            maximumLineLength += 1024;
             lineBuffer = realloc(lineBuffer, maximumLineLength);
             if (lineBuffer == NULL) {
                 printf("Error reallocating space for line buffer.");
@@ -42,7 +42,7 @@ char *readLine(FILE *file) {
         lineBuffer[count] = ch;
         count++;
 
-        ch = getc(file);
+        ch = fgetwc(file);
     }
 
     lineBuffer[count] = '\0';
