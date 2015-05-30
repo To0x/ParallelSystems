@@ -11,10 +11,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "mpi.h"
-#include "jsmn.h"
 #include "fileHandler.h"
 #include <locale.h>
 #include <wchar.h>
+#include "dataHolder.h"
 
 int main(int argc, char* argv[]){
 	int  my_rank; /* rank of process */
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]){
 	
 	// File Initializations
 	FILE *fp;
-	fp = _wfopen("./twitter-klein.json", "rb+, ccs=UTF-8");
+	fp = fopen("./65536tweets.txt", "rb+, ccs=UTF-8");
 	if (fp == NULL) {
 		printf("file not accessible!\n");
 		exit(EXIT_FAILURE);
@@ -44,13 +44,45 @@ int main(int argc, char* argv[]){
 		sprintf(message, "Hello MPI World from process %d!", my_rank);
 		dest = 0;
 
-		int i = 0;
+
+		//byte *test = readTweets("./");
+		//////////
+
+
+		//int i = 0;
 		wchar_t c;
+		uint8_t actInt;
+
+		struct tweetData *td;
+
 		while (!feof(fp)) {
 			wchar_t *line = readLine(fp);
-			wprintf(L"%ls\n", line);
+
+			/*
+			while ((c = *line) != '\0') {
+				actInt = (uint16_t) c;
+
+		        actInt = (uint8_t)c;
+
+		        wprintf(L"%lc - ", c);
+		        printf("%u", actInt);
+
+		        printf("\n");
+
+				line++;
+			}
+			*/
+
+			td = parseTweet(line, "test");
+
+			printf("%ls - Hashtags: %d, Smileys: %d\n", line, td->hashtags, td->smiles);
 
 
+			//i++;
+			//if (i==5)
+			//	break;
+
+			/*
 			c = *line;
 			while (c != 0) {
 				wprintf(L"%lc-", c);
@@ -63,15 +95,16 @@ int main(int argc, char* argv[]){
 
 			if (i == 5)
 				break;
-
+			*/
 		}
 
 		MPI_Finalize();
 		return 0;
 
-		/* use strlen+1 so that '\0' get transmitted */
+		// use strlen+1 so that '\0' get transmitted
 		//MPI_Send(message, strlen(message)+1, MPI_CHAR,
 		//   dest, tag, MPI_COMM_WORLD);
+
 	}
 	else{
 		printf("Hello MPI World From process 0: Num processes: %d\n",p);
