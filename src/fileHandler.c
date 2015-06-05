@@ -14,7 +14,7 @@
 
 #define BYTE_ALLOCATION 1024;
 
-wchar_t *readLine(FILE *file) {
+unsigned char *readLine(FILE *file) {
 
 	//setlocale(LC_ALL, "es_US.UTF-8");
     if (file == NULL) {
@@ -23,17 +23,17 @@ wchar_t *readLine(FILE *file) {
     }
 
     int maximumLineLength = BYTE_ALLOCATION;
-    wchar_t *lineBuffer = (wchar_t *)malloc(sizeof(wchar_t) * maximumLineLength);
+    unsigned char *lineBuffer = (unsigned char *)malloc(sizeof(unsigned char) * maximumLineLength);
 
     if (lineBuffer == NULL) {
         printf("Error allocating memory for line buffer.");
         exit(1);
     }
 
-    wchar_t ch = fgetwc(file);
+    int ch = getc(file);
     int count = 0;
 
-    while ((ch != '\n') && (ch != EOF)) {
+    while ((ch != (int)'\n') && (ch != EOF)) {
         if (count == maximumLineLength) {
             maximumLineLength += BYTE_ALLOCATION;
             if ((lineBuffer = realloc(lineBuffer, maximumLineLength)) == NULL) {
@@ -42,7 +42,7 @@ wchar_t *readLine(FILE *file) {
             }
         }
 
-        lineBuffer[count] = ch;
+        lineBuffer[count] = (unsigned char)ch;
 
         /*
         uint8_t intchar;
@@ -67,7 +67,7 @@ wchar_t *readLine(FILE *file) {
 		*/
         count++;
 
-        ch = fgetwc(file);
+        ch = getc(file);
     }
 
     lineBuffer[count] = '\0';

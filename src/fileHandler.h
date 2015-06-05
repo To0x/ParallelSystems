@@ -8,6 +8,6 @@
 #ifndef FILEHANDLER_H_
 #define FILEHANDLER_H_
 
-wchar_t *readLine(FILE *file);
+unsigned char *readLine(FILE *file);
 
 #endif /* FILEHANDLER_H_ */

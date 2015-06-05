@@ -9,31 +9,24 @@
 #include <stdlib.h>
 #include "dataHolder.h"
 
+//#define PARSE(__x__, __y__) y=((uint8_t)*(++__x__);)
+
 void resetTweetData(struct tweetData *td) {
 	td->hashtags = 0;
 	td->keywords = 0;
 	td->smiles = 0;
 }
 
-int isSmile(wchar_t* tweetString) {
-
-
-	uint16_t actIntChar;
-	wchar_t actChar;
-
-	actChar = *tweetString;
-	actIntChar = (uint16_t)actChar;
-
-
-
-
-	return 0;
+uint8_t next(unsigned char *tweet) {
+	uint8_t retVal = (uint8_t)*(++tweet);
+	printf("%c %d\n", retVal, retVal);
+	return retVal;
+	//return (uint8_t)*(++tweet);
 }
 
-struct tweetData* parseTweet(wchar_t* tweetString, char* keyWord) {
+struct tweetData* parseTweet(unsigned char* tweetString, char* keyWord) {
 
-	wchar_t actChar;
-	uint16_t actIntChar;
+	uint8_t actChar;
 	int actCharByteLenght;
 
 	static struct tweetData *thisData;
@@ -42,18 +35,17 @@ struct tweetData* parseTweet(wchar_t* tweetString, char* keyWord) {
 
 	while ((actChar = *tweetString) != '\0') {
 
-        actIntChar = (uint16_t)actChar;
-        if (actIntChar < 128) {// 0xxx xxxx --> befindet sich im ASCII bereich
+        if (actChar < 128) {// 0xxx xxxx --> befindet sich im ASCII bereich
         	actCharByteLenght = 1;
 
         	if (actChar == '#')
         		thisData->hashtags++;
         }
-        else if (actIntChar < 224) { // 110x xxxx --> UTF8 Encoding beginnt 2Byte
+        else if (actChar < 224) { // 110x xxxx --> UTF8 Encoding beginnt 2Byte
         	actCharByteLenght = 2;
         	tweetString++;
         }
-        else if (actIntChar < 240) {// 1110 xxxx --> 3 Byte
+        else if (actChar < 240) {// 1110 xxxx --> 3 Byte
         	actCharByteLenght = 3;
         	tweetString+=2;
         }
@@ -61,36 +53,32 @@ struct tweetData* parseTweet(wchar_t* tweetString, char* keyWord) {
         	actCharByteLenght = 4; // 1111 0xxx --> 4 Byte
 
         	// count Smileys
-        	if (actIntChar == 240)
-        	{
-        		if (actIntChar == 240) {
-        			actIntChar = (uint16_t)*(++tweetString);
-        			if (actIntChar == 159) {
-        				actIntChar = (uint16_t)*(++tweetString);
-        				if (actIntChar == 152) {
-        					actIntChar = (uint16_t)*(++tweetString);
-        					if (actIntChar >= 129)
-        						thisData->smiles++;
-        				} else if (actIntChar == 153) {
-        					actIntChar = (uint16_t)*(++tweetString);
-        					if (actIntChar <= 143)
-        						thisData->smiles++;
-        				} else {
-        					tweetString+=4-3;
-        				}
-        			} else
-        			{
-        				tweetString+=4-2;
-        			}
-        		} else
-        		{
-        			tweetString+=4-1;
-        		}
-        	}
-
+			if (actChar == 240) {
+				actChar = (uint8_t)*(++tweetString); // next(tweetString);
+				if (actChar == 159) {
+					actChar = (uint8_t)*(++tweetString); // next(tweetString);
+					if (actChar == 152) {
+						actChar = (uint8_t)*(++tweetString); // next(tweetString);
+						if (actChar >= 129)
+							thisData->smiles++;
+					} else if (actChar == 153) {
+						actChar = (uint8_t)*(++tweetString); // next(tweetString);
+						if (actChar <= 143)
+							thisData->smiles++;
+					} else {
+						tweetString+=4-3;
+					}
+				} else
+				{
+					tweetString+=4-2;
+				}
+			} else
+			{
+				tweetString+=4-1;
+			}
         }
 
-		tweetString++; // die Anzahl der Bytes überspringen, solange das Zeichen war.
+		tweetString++;
 	}
 
 	return thisData;

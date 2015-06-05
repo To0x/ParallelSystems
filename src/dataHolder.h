@@ -10,12 +10,12 @@
 
 struct tweetData{
 
-	int keywords;
-	int smiles;
-	int hashtags;
+	uint8_t keywords;
+	uint8_t smiles;
+	uint8_t hashtags;
 
 };
 
-struct tweetData* parseTweet(wchar_t* tweetString, char* keyWord);
+struct tweetData* parseTweet(unsigned char* tweetString, char* keyWord);
 
 #endif /* DATAHOLDER_H_ */

@@ -50,32 +50,32 @@ int main(int argc, char* argv[]){
 
 
 		//int i = 0;
-		wchar_t c;
+		unsigned char c;
 		uint8_t actInt;
 
 		struct tweetData *td;
 
 		while (!feof(fp)) {
-			wchar_t *line = readLine(fp);
+			unsigned char *line = readLine(fp);
 
 			/*
 			while ((c = *line) != '\0') {
-				actInt = (uint16_t) c;
+				//actInt = (uint16_t) c;
 
 		        actInt = (uint8_t)c;
 
-		        wprintf(L"%lc - ", c);
+		        printf("%c - ", c);
 		        printf("%u", actInt);
 
 		        printf("\n");
 
 				line++;
-			}
-			*/
+			}*/
+
 
 			td = parseTweet(line, "test");
 
-			printf("%ls - Hashtags: %d, Smileys: %d\n", line, td->hashtags, td->smiles);
+			printf("%s - Hashtags: %d, Smileys: %d\n", line, td->hashtags, td->smiles);
 
 
 			//i++;
