@@ -45,8 +45,8 @@ unsigned char *readLine(FILE *file) {
         lineBuffer[count] = (unsigned char)ch;
 
         /*
-        uint8_t intchar;
-        intchar = (uint8_t)ch;
+        unsigned char intchar;
+        intchar = (unsigned char)ch;
 
         wprintf(L"%lc - ", ch);
         printf("%" PRIu32, intchar);
@@ -71,6 +71,6 @@ unsigned char *readLine(FILE *file) {
     }
 
     lineBuffer[count] = '\0';
-    realloc(lineBuffer, count+1);
+    //realloc(lineBuffer, count+1);
     return lineBuffer;
 }

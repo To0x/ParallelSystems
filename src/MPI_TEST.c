@@ -32,7 +32,7 @@ int main(int argc, char* argv[]){
 	
 	// File Initializations
 	FILE *fp;
-	fp = fopen("./65536tweets.txt", "rb+, ccs=UTF-8");
+	fp = fopen("./65536tweets.0", "rb+, ccs=UTF-8");
 	if (fp == NULL) {
 		printf("file not accessible!\n");
 		exit(EXIT_FAILURE);
@@ -51,7 +51,7 @@ int main(int argc, char* argv[]){
 
 		//int i = 0;
 		unsigned char c;
-		uint8_t actInt;
+		unsigned char actInt;
 
 		struct tweetData *td;
 
@@ -62,7 +62,7 @@ int main(int argc, char* argv[]){
 			while ((c = *line) != '\0') {
 				//actInt = (uint16_t) c;
 
-		        actInt = (uint8_t)c;
+		        actInt = (unsigned char)c;
 
 		        printf("%c - ", c);
 		        printf("%u", actInt);

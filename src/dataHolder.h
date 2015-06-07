@@ -10,9 +10,9 @@
 
 struct tweetData{
 
-	uint8_t keywords;
-	uint8_t smiles;
-	uint8_t hashtags;
+	unsigned char keywords;
+	unsigned char smiles;
+	unsigned char hashtags;
 
 };
 

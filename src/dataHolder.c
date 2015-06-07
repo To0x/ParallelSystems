@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include "dataHolder.h"
 
-//#define PARSE(__x__, __y__) y=((uint8_t)*(++__x__);)
+//#define PARSE(__x__, __y__) y=((unsigned char)*(++__x__);)
 
 void resetTweetData(struct tweetData *td) {
 	td->hashtags = 0;
@@ -17,16 +17,16 @@ void resetTweetData(struct tweetData *td) {
 	td->smiles = 0;
 }
 
-uint8_t next(unsigned char *tweet) {
-	uint8_t retVal = (uint8_t)*(++tweet);
+unsigned char next(unsigned char *tweet) {
+	unsigned char retVal = (unsigned char)*(++tweet);
 	printf("%c %d\n", retVal, retVal);
 	return retVal;
-	//return (uint8_t)*(++tweet);
+	//return (unsigned char)*(++tweet);
 }
 
 struct tweetData* parseTweet(unsigned char* tweetString, char* keyWord) {
 
-	uint8_t actChar;
+	unsigned char actChar;
 	int actCharByteLenght;
 
 	static struct tweetData *thisData;
@@ -54,15 +54,15 @@ struct tweetData* parseTweet(unsigned char* tweetString, char* keyWord) {
 
         	// count Smileys
 			if (actChar == 240) {
-				actChar = (uint8_t)*(++tweetString); // next(tweetString);
+				actChar = (unsigned char)*(++tweetString); // next(tweetString);
 				if (actChar == 159) {
-					actChar = (uint8_t)*(++tweetString); // next(tweetString);
+					actChar = (unsigned char)*(++tweetString); // next(tweetString);
 					if (actChar == 152) {
-						actChar = (uint8_t)*(++tweetString); // next(tweetString);
+						actChar = (unsigned char)*(++tweetString); // next(tweetString);
 						if (actChar >= 129)
 							thisData->smiles++;
 					} else if (actChar == 153) {
-						actChar = (uint8_t)*(++tweetString); // next(tweetString);
+						actChar = (unsigned char)*(++tweetString); // next(tweetString);
 						if (actChar <= 143)
 							thisData->smiles++;
 					} else {
