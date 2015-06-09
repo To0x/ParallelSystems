@@ -15,6 +15,11 @@
 #include <locale.h>
 #include <wchar.h>
 #include "dataHolder.h"
+#include "bucketSort.h"
+#include <time.h>
+#include <sys/time.h>
+
+#define NUMBEROFTWEETS 6
 
 int main(int argc, char* argv[]) {
 	int my_rank; /* rank of process */
@@ -35,7 +40,7 @@ int main(int argc, char* argv[]) {
 
 	// File Initializations
 	FILE *fp;
-	fp = fopen("./65536tweets.0", "rb+, ccs=UTF-8");
+	fp = fopen("./2097152tweets.0", "rb+, ccs=UTF-8");
 	if (fp == NULL) {
 		printf("file not accessible!\n");
 		exit(EXIT_FAILURE);
@@ -50,65 +55,56 @@ int main(int argc, char* argv[]) {
 		//byte *test = readTweets("./");
 		//////////
 
-		//int i = 0;
 		unsigned char c;
 		unsigned char actInt;
 
-		struct tweetData *td;
 
-		int i = 0;
+		//printf("%d", size_t);
+		struct tweetData *td;
+		//struct tweetData *test = new struct tweetData[NUMBEROFTWEETS];
+		printf("test2");
+
+		time_t t1 = time(NULL);
+		int numberOfTweets = 0;
+
+		struct timeval time1;
+		gettimeofday(&time1, NULL);
+		long microsec1 = ((unsigned long long)time1.tv_sec * 1000000) + time1.tv_usec;
 		while (!feof(fp)) {
 			unsigned char *line = readLine(fp);
 
-			if (i == 5) {
+			if (numberOfTweets == 5) {
 				break;
 			}
-			i++;
-
-			/*
-			 while ((c = *line) != '\0') {
-			 //actInt = (uint16_t) c;
-
-			 actInt = (unsigned char)c;
-
-			 printf("%c - ", c);
-			 printf("%u", actInt);
-
-			 printf("\n");
-
-			 line++;
-			 }*/
+			numberOfTweets++;
 
 			td = parseTweet(line, argv[1]);
+			printf("%d: %s - Hashtags: %d, Smileys: %d, Keywords %d\n", numberOfTweets, line, td->hashtags, td->smiles, td->keywords);
 
-			printf("%s - Hashtags: %d, Smileys: %d, Keywords: %d\n", line, td->hashtags,
-					td->smiles, td->keywords);
-
-			//i++;
-			//if (i==5)
-			//	break;
-
-			/*
-			 c = *line;
-			 while (c != 0) {
-			 wprintf(L"%lc-", c);
-			 c = *line++;
-			 }
-
-			 i++;
-			 printf("\n");
-			 //printf("%c", line);
-
-			 if (i == 5)
-			 break;
-			 */
+			test[numberOfTweets] = *td;
 		}
+		struct timeval time2;
+		gettimeofday(&time2, NULL);
+		long microsec2 = ((unsigned long long)time2.tv_sec * 1000000) + time2.tv_usec;
+
+		time_t t2 = time(NULL);
+
+		float timeToSort = quickSort(test, NUMBEROFTWEETS);
+
+		// foreach (element e : test)
+		//for (int j = 0 ; j < sizeof(test) / sizeof(test[0]) ; j++) {
+		//	printf("%s - Hashtags: %d, Smileys: %d, Keywords: %d\n", test[j].line, test[j].hashtags,
+		//			test[j].smiles, test[j].keywords);
+		//}
+
+		printf("einlesen diff: %ld msec\n",(long)(microsec2-microsec1)/1000);
+		printf("sortieren %8.4f\n", timeToSort);
 
 		MPI_Finalize();
 		return 0;
 
 		// use strlen+1 so that '\0' get transmitted
-		//MPI_Send(message, strlen(message)+1, MPI_CHAR,
+		// MPI_Send(message, strlen(message)+1, MPI_CHAR,
 		//   dest, tag, MPI_COMM_WORLD);
 
 	} else {

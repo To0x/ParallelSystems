@@ -49,6 +49,7 @@ struct tweetData* parseTweet(unsigned char* tweetString, char* keyWord) {
 	static struct tweetData *thisData;
 	thisData = malloc(sizeof(struct tweetData));
 	resetTweetData(thisData);
+	thisData->line = tweetString;
 
 	while ((actChar = *tweetString) != '\0') {
 

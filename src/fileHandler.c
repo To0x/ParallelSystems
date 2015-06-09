@@ -16,7 +16,6 @@
 
 unsigned char *readLine(FILE *file) {
 
-	//setlocale(LC_ALL, "es_US.UTF-8");
     if (file == NULL) {
         printf("Error: file pointer is null.");
         exit(1);
@@ -43,30 +42,7 @@ unsigned char *readLine(FILE *file) {
         }
 
         lineBuffer[count] = (unsigned char)ch;
-
-        /*
-        unsigned char intchar;
-        intchar = (unsigned char)ch;
-
-        wprintf(L"%lc - ", ch);
-        printf("%" PRIu32, intchar);
-
-        int laenge;
-        if (intchar <= 127) // 0xxx xxxx --> befindet sich im ASCII bereich
-        	laenge = 1;
-        else if (intchar <= 224) // 110x xxxx --> UTF8 Encoding beginnt 2Byte
-        	laenge = 2;
-        else if (intchar <= 240) // 1110 xxxx --> 3 Byte
-        	laenge = 3;
-        else
-        	laenge = 4; // 1111 0xxx --> 4 Byte
-
-        // 10xx xxxx --> all following bytes
-
-        printf("\n");
-		*/
         count++;
-
         ch = getc(file);
     }
 

@@ -8,12 +8,14 @@
 #ifndef DATAHOLDER_H_
 #define DATAHOLDER_H_
 
-struct tweetData{
+struct tweetData {
 
+	unsigned char *line;
 	unsigned char keywords;
 	unsigned char smiles;
 	unsigned char hashtags;
 
+	//struct tweetData *next;
 };
 
 struct tweetData* parseTweet(unsigned char* tweetString, char* keyWord);
