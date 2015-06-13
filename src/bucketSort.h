@@ -9,6 +9,6 @@
 #define BUCKETSORT_H_
 
 void Bucket_Sort(int array[], int n);
-float quickSort(struct tweetData *toSort, int len);
+float quickSort(struct tweetData *toSort, long len);
 
 #endif /* BUCKETSORT_H_ */
