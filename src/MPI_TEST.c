@@ -56,10 +56,10 @@ int main(int argc, char* argv[]) {
 	unsigned char c;
 	unsigned char actInt;
 
-	//printf("%d", size_t);
 	struct tweetData *td;
-	//struct tweetData test[NUMBEROFTWEETS];
-	struct tweetData test[NUMBEROFTWEETS];
+	printf("try to allocate %lu kbytes\n", (sizeof(struct tweetData*) * NUMBEROFTWEETS) / 1000);
+	struct tweetData *test = (struct tweetData* )malloc(sizeof(struct tweetData) * NUMBEROFTWEETS);
+	fflush(stdout);
 
 	time_t t1 = time(NULL);
 	long numberOfTweets = 0;
@@ -68,6 +68,8 @@ int main(int argc, char* argv[]) {
 	gettimeofday(&time1, NULL);
 	long microsec1 = ((unsigned long long) time1.tv_sec * 1000000)
 			+ time1.tv_usec;
+
+	long long allocated = 0;
 	while (!feof(fp)) {
 		unsigned char *line = readLine(fp);
 
@@ -77,16 +79,19 @@ int main(int argc, char* argv[]) {
 			printf("\n\n");
 			break;
 		}
-		numberOfTweets++;
 
 		td = parseTweet(line, "an");
+		allocated += td->size;
 		if (numberOfTweets % 1000 == 0) {
 			printf("%li: %s - Hashtags: %d, Smileys: %d, Keywords %d\n",
 					numberOfTweets, line, td->hashtags, td->smiles,
 					td->keywords);
+			printf("%ld: allocated: %lld Mbytes\n",numberOfTweets, (allocated/1000000));
+			fflush(stdout);
 		}
 
 		test[numberOfTweets] = *td;
+		numberOfTweets++;
 	}
 	struct timeval time2;
 	gettimeofday(&time2, NULL);

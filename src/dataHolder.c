@@ -23,7 +23,6 @@ unsigned char next(unsigned char *tweet) {
 	unsigned char retVal = (unsigned char) *(++tweet);
 	printf("%c %d\n", retVal, retVal);
 	return retVal;
-	//return (unsigned char)*(++tweet);
 }
 
 bool isKeyWord(unsigned char* tweetString, char* keyword) {
@@ -50,6 +49,8 @@ struct tweetData* parseTweet(unsigned char* tweetString, char* keyWord) {
 	thisData = malloc(sizeof(struct tweetData));
 	resetTweetData(thisData);
 	thisData->line = tweetString;
+	// TODO: CAST!
+	thisData->size = sizeof(struct tweetData) + (sizeof(unsigned char) * ((unsigned long)strlen(tweetString)) + 1);
 
 	while ((actChar = *tweetString) != '\0') {
 
