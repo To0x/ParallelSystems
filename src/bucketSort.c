@@ -8,38 +8,74 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 #include "dataHolder.h"
 
-void Bucket_Sort(int array[], int n)
-{
-    int i, j;
-    int count[n];
-    for (i = 0; i < n; i++)
-        count[i] = 0;
+#define UNICODE_ARRAY_LENGTH 250
 
-    for (i = 0; i < n; i++)
-        (count[array[i]])++;
+void Bucket_Sort(int array[], int n) {
+	int i, j;
+	int count[n];
+	for (i = 0; i < n; i++)
+		count[i] = 0;
 
-    for (i = 0, j = 0; i < n; i++)
-        for(; count[i] > 0; (count[i])--)
-            array[j++] = i;
+	for (i = 0; i < n; i++)
+		(count[array[i]])++;
+
+	for (i = 0, j = 0; i < n; i++)
+		for (; count[i] > 0; (count[i])--)
+			array[j++] = i;
+}
+
+int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
+	if (tw1->keywords == 18) {
+		printf("%s - Hashtags: %d, Smileys: %d, Keywords: %d\n", tw1->line,
+				tw1->hashtags, tw1->smiles, tw1->keywords);
+		printf("%s - Hashtags: %d, Smileys: %d, Keywords: %d\n", tw2->line,
+				tw2->hashtags, tw2->smiles, tw2->keywords);
+		printf(
+				"-----------------------------------------------------------------------\n");
+
+		int unicode[2][UNICODE_ARRAY_LENGTH];
+		for (int i = 0; i < UNICODE_ARRAY_LENGTH; i++) {
+			unicode[0][i] = 0;
+			unicode[1][i] = 0;
+		}
+
+		for (int i = 0; i < strlen(tw1->line); i++) {
+			unicode[0][tw1->line[i]] += 1;
+			//printf("i: %d ---> %c ---> %d \n", i, (char)tw1->line[i], tw1->line[i]);
+		}
+		for (int i = 0; i < strlen(tw2->line); i++) {
+			unicode[1][tw2->line[i]] += 1;
+			//printf("i: %d ---> %c ---> %d \n", i, (char)tw1->line[i], tw1->line[i]);
+		}
+
+		for (int i = 0; i < UNICODE_ARRAY_LENGTH; i++) {
+			printf("Filled array[%d]: %d ", i, unicode[0][i]);
+			printf("vs %d\n", unicode[1][i]);
+			
+			if(unicode[0][i] > unicode[1][i]){
+				return -1;
+			} else if (unicode[0][i] < unicode[1][i]){
+				return 1;
+			}
+		}
+
+	}
+	return 0;
 }
 
 int compare(const void *c1, const void *c2) {
 
-	struct tweetData *tw1 = (struct tweetData*)c1;
-	struct tweetData *tw2 = (struct tweetData*)c2;
+	struct tweetData *tw1 = (struct tweetData*) c1;
+	struct tweetData *tw2 = (struct tweetData*) c2;
 
-	if (tw1->keywords > tw2->keywords)
-	{
+	if (tw1->keywords > tw2->keywords) {
 		return -1;
-	}
-	else if (tw1->keywords == tw2->keywords)
-	{
-		//TODO: check for Histogramm!
-		return 0;
-	}
-	else {
+	} else if (tw1->keywords == tw2->keywords) {
+		return compareHistogram(tw1, tw2);
+	} else {
 		return 1;
 	}
 }
@@ -52,5 +88,5 @@ float quickSort(struct tweetData *toSort, long len) {
 	//printf("time %lld", (long long)t2);
 
 	//return 0.0;
-	return (float)(t2-t1);
+	return (float) (t2 - t1);
 }

@@ -84,32 +84,55 @@ int main(int argc, char* argv[]) {
 
 		td = parseTweet(line, "an");
 		allocated += td->size;
-		if (numberOfTweets % 1000 == 0) {
-			printf("%li: %s - Hashtags: %d, Smileys: %d, Keywords %d\n",
-					numberOfTweets, line, td->hashtags, td->smiles,
-					td->keywords);
-			printf("%ld: allocated: %lld Mbytes\n", numberOfTweets,
-					(allocated / 1000000));
-			fflush(stdout);
-		}
+//		if (numberOfTweets % 1000 == 0) {
+//			printf("%li: %s - Hashtags: %d, Smileys: %d, Keywords %d\n",
+//					numberOfTweets, line, td->hashtags, td->smiles,
+//					td->keywords);
+//			printf("%ld: allocated: %lld Mbytes\n", numberOfTweets,
+//					(allocated / 1000000));
+//			fflush(stdout);
+//		}
 
 		test[numberOfTweets] = *td;
 		numberOfTweets++;
 	}
+	
+	// Calc time
 	struct timeval time2;
 	gettimeofday(&time2, NULL);
 	long microsec2 = ((unsigned long long) time2.tv_sec * 1000000)
 			+ time2.tv_usec;
-
 	time_t t2 = time(NULL);
+	float timeToSort = quickSort(test, NUMBEROFTWEETS + 1);
 
-	long tweetCount = (long) (sizeof(test) / sizeof(test[0]));
-	printf("Test: %ld\n", tweetCount);
-	float timeToSort = quickSort(test, NUMBEROFTWEETS+1);
+//	// Unicode sorting
+//	struct tweetData *sortedTweets = (struct tweetData*) malloc(
+//			sizeof(struct tweetData) * NUMBEROFTWEETS);
+//	int i, lastIndex = 0;
+//	for (int k = test[0].keywords; k >= 0; k--) {
+//		i = 0;
+//		while (test[i].keywords == k) {
+//			printf("In for...\n");
+//			sortedTweets[lastIndex] = *test;
+//			i++;
+//		}
+//		lastIndex += i;
+//		if (i != 1 && test[i].keywords == 3) {
+//			printf("i = %d\n",i);
+//			printf("%d: %s - Hashtags: %d, Smileys: %d, Keywords: %d\n", lastIndex,
+//					test[lastIndex].line, test[lastIndex].hashtags, test[lastIndex].smiles,
+//					test[lastIndex].keywords);
+//		}
+//	}
 
-	for (int j = 0; j < 5; j++) {
-		printf("%s - Hashtags: %d, Smileys: %d, Keywords: %d\n", test[j].line,
-				test[j].hashtags, test[j].smiles, test[j].keywords);
+	
+	
+	for (int j = 0; j < NUMBEROFTWEETS; j += 1) {
+		if (test[j].line != NULL && test[j].keywords == 18) {
+			printf("%d: %s - Hashtags: %d, Smileys: %d, Keywords: %d\n", j,
+					test[j].line, test[j].hashtags, test[j].smiles,
+					test[j].keywords);
+		}
 	}
 
 	printf("einlesen diff: %ld msec\n", (long) (microsec2 - microsec1) / 1000);
