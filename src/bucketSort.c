@@ -45,12 +45,12 @@ int compare(const void *c1, const void *c2) {
 }
 
 float quickSort(struct tweetData *toSort, long len) {
-	//time_t t1 = time(NULL);
+	time_t t1 = time(NULL);
 	//printf("time %lld", (long long)t1);
-	//qsort(toSort, len, sizeof(struct tweetData), compare);
-	//time_t t2 = time(NULL);
+	qsort(toSort, len, sizeof(struct tweetData), compare);
+	time_t t2 = time(NULL);
 	//printf("time %lld", (long long)t2);
 
-	return 0.0;
-	//return (float)(t2-t1);
+	//return 0.0;
+	return (float)(t2-t1);
 }

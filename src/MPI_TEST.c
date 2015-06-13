@@ -57,9 +57,11 @@ int main(int argc, char* argv[]) {
 	unsigned char actInt;
 
 	struct tweetData *td;
-	printf("try to allocate %lu kbytes\n", (sizeof(struct tweetData*) * NUMBEROFTWEETS) / 1000);
-	struct tweetData *test = (struct tweetData* )malloc(sizeof(struct tweetData) * NUMBEROFTWEETS);
-	fflush(stdout);
+	printf("try to allocate %lu kbytes\n",
+			(sizeof(struct tweetData*) * NUMBEROFTWEETS) / 1000);
+	struct tweetData *test = (struct tweetData*) malloc(
+			sizeof(struct tweetData) * NUMBEROFTWEETS);
+	fflush (stdout);
 
 	time_t t1 = time(NULL);
 	long numberOfTweets = 0;
@@ -86,7 +88,8 @@ int main(int argc, char* argv[]) {
 			printf("%li: %s - Hashtags: %d, Smileys: %d, Keywords %d\n",
 					numberOfTweets, line, td->hashtags, td->smiles,
 					td->keywords);
-			printf("%ld: allocated: %lld Mbytes\n",numberOfTweets, (allocated/1000000));
+			printf("%ld: allocated: %lld Mbytes\n", numberOfTweets,
+					(allocated / 1000000));
 			fflush(stdout);
 		}
 
@@ -99,18 +102,15 @@ int main(int argc, char* argv[]) {
 			+ time2.tv_usec;
 
 	time_t t2 = time(NULL);
-	
-	long tweetCount = (long) (sizeof(test)/sizeof(test[0]));
-	printf("Test: %ld", tweetCount);
-	quickSort(test, tweetCount);
-	return 0;
+
+	long tweetCount = (long) (sizeof(test) / sizeof(test[0]));
+	printf("Test: %ld\n", tweetCount);
 	float timeToSort = quickSort(test, NUMBEROFTWEETS+1);
 
-	//for (int j = 0; j < sizeof(test) / sizeof(test[0]); j++) {
-	//	printf("%s - Hashtags: %d, Smileys: %d, Keywords: %d\n",
-	//			test[j].line, test[j].hashtags, test[j].smiles,
-	//			test[j].keywords);
-	//}
+	for (int j = 0; j < 5; j++) {
+		printf("%s - Hashtags: %d, Smileys: %d, Keywords: %d\n", test[j].line,
+				test[j].hashtags, test[j].smiles, test[j].keywords);
+	}
 
 	printf("einlesen diff: %ld msec\n", (long) (microsec2 - microsec1) / 1000);
 	printf("sortieren %8.4f\n", timeToSort);
