@@ -10,6 +10,7 @@
 #include <time.h>
 #include <string.h>
 #include "dataHolder.h"
+#include <stdbool.h>
 
 // last unicode --> 131.071
 #define UNICODE_ARRAY_LENGTH 1000
@@ -28,45 +29,61 @@ void Bucket_Sort(int array[], int n) {
 			array[j++] = i;
 }
 
-long getSmallestUnicode(char* tw1Line) {
-	static long long counter = 0;
+bool isvalueinarray(long val, int *arr, int size) {
+	int i;
+	for (i = 0; i < size; i++) {
+		if (arr[i] == val)
+			return true;
+	}
+	return false;
+}
 
-	long unicode1 = 3000;
-	//printf("%s\n",tw1Line);
-	long i = 0;
+int countUnicode(char* tw1Line, int unicode1) {
+	int count = 0;
+	int i = 0;
 	while (tw1Line[i] != '\0') {
-//		if (counter++ % 10000 == 0) {
-//			printf("%lli\t%li\n", counter, (long) strlen(tw1Line));
-//		}
-//		if ((long) tw1Line[i] > 0 && (long) tw1Line[i] < unicode1) {
-//			unicode1 = (int) tw1Line[i];
-//		}
+		if ((long) tw1Line[i] == unicode1) {
+			count++;
+		}
 		i++;
 	}
-//	printf("smallest unicode: %li\n", unicode1);
+	return count;
+}
+
+long getSmallestUnicode(char* tw1Line, int* toIgnore) {
+	long unicode1 = 3000;
+
+	int i = 0;
+	while (tw1Line[i] != '\0') {
+		// TODO Why are some unicodes < 0 ?
+		if ((long) tw1Line[i] > 0 && (long) tw1Line[i] < unicode1) {
+			if (toIgnore != NULL
+					&& !(isvalueinarray((long) tw1Line[i], toIgnore,
+							sizeof(toIgnore)))) {
+				unicode1 = (int) tw1Line[i];
+			}
+		}
+		i++;
+	}
 	return unicode1;
 }
 
 int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
-	int unicode1 = getSmallestUnicode(tw1->line);
-	int unicode2 = getSmallestUnicode(tw2->line);
-
-//	for (int i = 0; i < (int) strlen(tw1->line); i++) {
-//		if ((int) tw1->line[i] < unicode1) {
-//			unicode1 = (int) tw1->line[i];
-//		}
-//	}
-//
-//	for (int i = 0; i < (int) strlen(tw2->line); i++) {
-//		if ((int) tw2->line[i] < unicode2) {
-//			unicode2 = (int) tw2->line[i];
-//		}
-//	}
+	int unicode1 = getSmallestUnicode(tw1->line, NULL);
+	int unicode2 = getSmallestUnicode(tw2->line, NULL);
 
 	if (unicode1 > unicode2) {
 		return -1;
-	} else if (unicode1 == unicode2) {
-		return 0;
+	} else if (unicode1 == unicode2) { // Same unicode. Have to check for count.
+		int c1 = countUnicode(tw1->line, unicode1);
+		int c2 = countUnicode(tw2->line, unicode2);
+		if (c1 > c2) {
+			return -1;
+		} else if (c1 == c2) { // Same unicode and count. Get next Unicode
+			return 0;
+		} else {
+			return 1;
+		}
 	} else {
 		return 1;
 	}
@@ -80,17 +97,16 @@ int compare(const void *c1, const void *c2) {
 	if (tw1->keywords > tw2->keywords) {
 		return -1;
 	} else if (tw1->keywords == tw2->keywords) {
+
 		static long i = 0;
 		i++;
-
 		if (i % 10000 == 0) {
 			//printf("%d\n", compareHistogram(tw1, tw2));
 			//printf("%li\n", i);
 		}
-		if (tw1->line != NULL && tw1->line != NULL) {
+
+		if (tw1->line != NULL && tw2->line != NULL) {
 			return compareHistogram(tw1, tw2);
-		}{
-			printf("Some strings are NULL...\n");
 		}
 		return 0;
 	} else {

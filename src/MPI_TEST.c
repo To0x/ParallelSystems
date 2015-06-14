@@ -36,11 +36,11 @@ int main(int argc, char* argv[]) {
 	//MPI_Comm_size(MPI_COMM_WORLD, &p);
 
 	// Show keyword
-	printf("Tweets will be sorted by keyword 'an'.\n");
+	printf("Tweets will be sorted by keyword 'la'.\n");
 
 	// File Initializations
 	FILE *fp;
-	fp = fopen("./2097152tweets.0", "rb+, ccs=UTF-8");
+	fp = fopen("./65536tweets.0", "rb+, ccs=UTF-8");
 	if (fp == NULL) {
 		printf("file not accessible!\n");
 		exit (EXIT_FAILURE);
@@ -82,9 +82,9 @@ int main(int argc, char* argv[]) {
 			break;
 		}
 
-		td = parseTweet(line, "an");
+		td = parseTweet(line, "la");
 		allocated += td->size;
-		
+
 		// Usefull for debugging:
 //		if (numberOfTweets % 1000 == 0) {
 //			printf("%li: %s - Hashtags: %d, Smileys: %d, Keywords %d\n",
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
 		test[numberOfTweets] = *td;
 		numberOfTweets++;
 	}
-	
+
 	// Calc time
 	struct timeval time2;
 	gettimeofday(&time2, NULL);
@@ -107,23 +107,33 @@ int main(int argc, char* argv[]) {
 	time_t t2 = time(NULL);
 	float timeToSort = quickSort(test, NUMBEROFTWEETS + 1);
 
+	
+	FILE *f = fopen("out.txt", "w");
+	if (f == NULL) {
+		printf("Error opening file!\n");
+		exit(1);
+	}
+	
 	for (int j = 0; j < NUMBEROFTWEETS; j += 1) {
-		if (test[j].line != NULL ){//&& test[j].keywords == 18) {
-			printf("%d: %s - Hashtags: %d, Smileys: %d, Keywords: %d\n", j,
-					test[j].line, test[j].hashtags, test[j].smiles,
-					test[j].keywords);
+		if (test[j].line != NULL) {
+//			printf("%d: %s - Hashtags: %d, Smileys: %d, Keywords: %d\n", j,
+//					test[j].line, test[j].hashtags, test[j].smiles,
+//					test[j].keywords);
+
+			/* print some text */
+			fprintf(f, "%s\n", test[j].line);
 		}
 	}
 
 	printf("einlesen diff: %ld msec\n", (long) (microsec2 - microsec1) / 1000);
 	printf("sortieren %8.4f\n", timeToSort);
 
-	//	MPI_Finalize();
+//	MPI_Finalize();
 	return 0;
 
-	// use strlen+1 so that '\0' get transmitted
-	// MPI_Send(message, strlen(message)+1, MPI_CHAR,
-	//   dest, tag, MPI_COMM_WORLD);
+// use strlen+1 so that '\0' get transmitted
+// MPI_Send(message, strlen(message)+1, MPI_CHAR,
+//   dest, tag, MPI_COMM_WORLD);
 
 	/*	} else {
 	 printf("Hello MPI World From process 0: Num processes: %d\n", p);
@@ -134,6 +144,6 @@ int main(int argc, char* argv[]) {
 	 }
 	 }
 	 /* shut down MPI */
-	//	MPI_Finalize();
+//	MPI_Finalize();
 	return 0;
 }
