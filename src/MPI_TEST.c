@@ -107,13 +107,13 @@ int main(int argc, char* argv[]) {
 	time_t t2 = time(NULL);
 	float timeToSort = quickSort(test, NUMBEROFTWEETS + 1);
 
-//	for (int j = 0; j < NUMBEROFTWEETS; j += 1) {
-//		if (test[j].line != NULL ){//&& test[j].keywords == 18) {
-//			printf("%d: %s - Hashtags: %d, Smileys: %d, Keywords: %d\n", j,
-//					test[j].line, test[j].hashtags, test[j].smiles,
-//					test[j].keywords);
-//		}
-//	}
+	for (int j = 0; j < NUMBEROFTWEETS; j += 1) {
+		if (test[j].line != NULL ){//&& test[j].keywords == 18) {
+			printf("%d: %s - Hashtags: %d, Smileys: %d, Keywords: %d\n", j,
+					test[j].line, test[j].hashtags, test[j].smiles,
+					test[j].keywords);
+		}
+	}
 
 	printf("einlesen diff: %ld msec\n", (long) (microsec2 - microsec1) / 1000);
 	printf("sortieren %8.4f\n", timeToSort);
