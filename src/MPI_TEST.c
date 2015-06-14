@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "mpi.h"
+//#include "mpi.h"
 #include <locale.h>
 #include <wchar.h>
 #include "dataHolder.h"
@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
 
 	// File Initializations
 	FILE *fp;
-	fp = fopen("./2097152tweets.0", "rb+, ccs=UTF-8");
+	fp = fopen("./65536tweets.txt", "rb+, ccs=UTF-8");
 	if (fp == NULL) {
 		printf("file not accessible!\n");
 		exit (EXIT_FAILURE);
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 			break;
 		}
 
-		td = parseTweet(line, "an");
+		td = parseTweet(line, "la");
 		allocated += td->size;
 //		if (numberOfTweets % 1000 == 0) {
 //			printf("%li: %s - Hashtags: %d, Smileys: %d, Keywords %d\n",
@@ -126,12 +126,21 @@ int main(int argc, char* argv[]) {
 //	}
 
 	
-	
+	FILE *f = fopen("out.txt", "w");
+	if (f == NULL)
+	{
+	    printf("Error opening file!\n");
+	    exit(1);
+	}
+
+	/* print some text */
+
 	for (int j = 0; j < NUMBEROFTWEETS; j += 1) {
-		if (test[j].line != NULL && test[j].keywords == 18) {
-			printf("%d: %s - Hashtags: %d, Smileys: %d, Keywords: %d\n", j,
-					test[j].line, test[j].hashtags, test[j].smiles,
-					test[j].keywords);
+		if (test[j].line != NULL) {
+	fprintf(f, "%s --> %d\n", test[j].line, test[j].keywords);
+//			printf("%d: %s - Hashtags: %d, Smileys: %d, Keywords: %d\n", j,
+//					test[j].line, test[j].hashtags, test[j].smiles,
+//					test[j].keywords);
 		}
 	}
 
