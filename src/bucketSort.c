@@ -11,7 +11,7 @@
 #include <string.h>
 #include "dataHolder.h"
 
-#define UNICODE_ARRAY_LENGTH 1000
+#define UNICODE_ARRAY_LENGTH 15000
 
 void Bucket_Sort(int array[], int n) {
 	int i, j;
@@ -28,6 +28,9 @@ void Bucket_Sort(int array[], int n) {
 }
 
 int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
+	static long y = 0;
+	printf("Index -> %d\n",y++);
+	
 	int unicode[2][UNICODE_ARRAY_LENGTH];
 	for (int i = 0; i < UNICODE_ARRAY_LENGTH; i++) {
 		unicode[0][i] = 0;
@@ -42,9 +45,18 @@ int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
 			unicode[0][tw1->line[i] + tw1->line[i++]] += 1;
 		} else if (actChar < 240) { // 1110 xxxx --> 3 Byte
 			unicode[0][tw1->line[i] + tw1->line[i++] + tw1->line[i++]] += 1;
-		} else {
+		} else if (actChar < 248) { // 1111 0xxx --> 4 Byte{
 			unicode[0][tw1->line[i] + tw1->line[i++] + tw1->line[i++]
 					+ tw1->line[i++]] += 1;
+		//	printf("4 Byte\n");
+		} else if (actChar < 252) { // 1111 10xx --> 5 Byte{
+			unicode[0][tw1->line[i] + tw1->line[i++] + tw1->line[i++]
+					+ tw1->line[i++] + tw1->line[i++]] += 1;
+			printf("5 Byte\n");
+		} else if (actChar < 254) { // 1111 110x --> 6 Byte{
+			unicode[0][tw1->line[i] + tw1->line[i++] + tw1->line[i++]
+					+ tw1->line[i++] + tw1->line[i++] + tw1->line[i++]] += 1;
+			printf("6 Byte\n");
 		}
 	}
 	for (int i = 0; i < strlen(tw2->line); i++) {
@@ -55,26 +67,35 @@ int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
 			unicode[1][tw2->line[i] + tw2->line[i++]] += 1;
 		} else if (actChar < 240) { // 1110 xxxx --> 3 Byte
 			unicode[1][tw2->line[i] + tw2->line[i++] + tw2->line[i++]] += 1;
-		} else {
+		} else if (actChar < 248) { // 1111 xxxx --> 4 Byte{
 			unicode[1][tw2->line[i] + tw2->line[i++] + tw2->line[i++]
 					+ tw2->line[i++]] += 1;
+			//printf("4 Byte\n");
+		} else if (actChar < 252) { // 1111 1xxx --> 5 Byte{
+			unicode[1][tw2->line[i] + tw2->line[i++] + tw2->line[i++]
+					+ tw2->line[i++] + tw2->line[i++]] += 1;
+			printf("5 Byte\n");
+		} else if (actChar < 254) { // 1111 1xxx --> 6 Byte{
+			unicode[1][tw2->line[i] + tw2->line[i++] + tw2->line[i++]
+					+ tw2->line[i++] + tw2->line[i++] + tw2->line[i++]] += 1;
+			printf("6 Byte\n");
 		}
-	}
-	if (tw1->keywords == 7) {
-		printf(
-				"-------------------------------------------------------------------------------\n");
 	}
 	for (int i = 0; i < UNICODE_ARRAY_LENGTH; i++) {
 		if (unicode[0][i] > unicode[1][i]) {
-			if (tw1->keywords == 7) {
-				printf("%s --> %d -> %d\n", tw1->line, i, unicode[0][i]);
-				printf("%s --> %d -> %d\n", tw2->line, i, unicode[1][i]);
+			if (tw1->keywords == 0) {
+				printf("%s --> %d -> %d --> %c\n", tw1->line, i, unicode[0][i],(char)i);
+				printf("%s --> %d -> %d --> %c\n", tw2->line, i, unicode[1][i],(char)i);
+				printf(
+						"-------------------------------------------------------------------------------\n");
 			}
 			return -1;
 		} else if (unicode[0][i] < unicode[1][i]) {
-			if (tw2->keywords == 7) {
-				printf("%s --> %d -> %d\n", tw1->line, i, unicode[0][i]);
-				printf("%s --> %d -> %d\n", tw2->line, i, unicode[1][i]);
+			if (tw2->keywords == 0) {
+				printf("%s --> %d -> %d --> %c\n", tw1->line, i, unicode[0][i],(char)i);
+				printf("%s --> %d -> %d --> %c\n", tw2->line, i, unicode[1][i],(char)i);
+				printf(
+						"-------------------------------------------------------------------------------\n");
 			}
 			return 1;
 		}

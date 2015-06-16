@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
 
 	// File Initializations
 	FILE *fp;
-	fp = fopen("./65536tweets.txt", "rb+, ccs=UTF-8");
+	fp = fopen("./65536tweets.0", "rb+, ccs=UTF-8");
 	if (fp == NULL) {
 		printf("file not accessible!\n");
 		exit (EXIT_FAILURE);
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
 
 	for (int j = 0; j < NUMBEROFTWEETS; j += 1) {
 		if (test[j].line != NULL) {
-	fprintf(f, "%s --> %d\n", test[j].line, test[j].keywords);
+	fprintf(f, "%s\n", test[j].line);
 //			printf("%d: %s - Hashtags: %d, Smileys: %d, Keywords: %d\n", j,
 //					test[j].line, test[j].hashtags, test[j].smiles,
 //					test[j].keywords);

@@ -35,6 +35,9 @@ bool isKeyWord(unsigned char* tweetString, char* keyword) {
 		if (tweetString[i] < 128 && tweetString[i] != keyword[i]) {
 			return false;
 		}
+		if(tweetString[i] > 128){
+			return false;
+		}
 	}
 
 	return true;
