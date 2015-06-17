@@ -15,6 +15,8 @@ struct tweetData {
 	unsigned char smiles;
 	unsigned char hashtags;
 	unsigned long size;
+	unsigned char smallestUniCode;
+	unsigned char countSmallest;
 
 	//struct tweetData *next;
 };

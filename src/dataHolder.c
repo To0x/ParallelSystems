@@ -17,6 +17,8 @@ void resetTweetData(struct tweetData *td) {
 	td->hashtags = 0;
 	td->keywords = 0;
 	td->smiles = 0;
+	td->smallestUniCode = 255;
+	td->countSmallest = 0;
 }
 
 unsigned char next(unsigned char *tweet) {
@@ -60,8 +62,11 @@ struct tweetData* parseTweet(unsigned char* tweetString, char* keyWord) {
 		if (actChar < 128) { // 0xxx xxxx --> befindet sich im ASCII bereich
 			actCharByteLenght = 1;
 
+			//printf("Act: %c\n", actChar);
+
 			if (isKeyWord(tweetString, keyWord)) {
 				thisData->keywords++;
+				//printf("KeyWord++\n");
 			}
 
 			// A hashtag followed by whitespace is no hashtag in our meaning.

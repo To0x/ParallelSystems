@@ -29,7 +29,7 @@ void Bucket_Sort(int array[], int n) {
 
 int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
 	static long y = 0;
-	printf("Index -> %d\n",y++);
+	//printf("Index -> %d\n",y++);
 	
 	int unicode[2][UNICODE_ARRAY_LENGTH];
 	for (int i = 0; i < UNICODE_ARRAY_LENGTH; i++) {
@@ -40,62 +40,74 @@ int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
 	for (int i = 0; i < strlen(tw1->line); i++) {
 		int actChar = (int) tw1->line[i];
 		if (actChar < 128) { // 0xxx xxxx --> befindet sich im ASCII bereich
-			unicode[0][tw1->line[i]] += 1;
+			unicode[0][(int)tw1->line[i]] += 1;
+			//printf("Unicode[0][%d]++\n", tw1->line[i]);
 		} else if (actChar < 224) { // 110x xxxx --> UTF8 Encoding beginnt 2Byte
-			unicode[0][tw1->line[i] + tw1->line[i++]] += 1;
+			unicode[0][(int)tw1->line[i] + (int)tw1->line[i+1]] += 1;
+			//printf("Unicode[0][%d]++\n", tw1->line[i] + tw1->line[i+1]);
 		} else if (actChar < 240) { // 1110 xxxx --> 3 Byte
-			unicode[0][tw1->line[i] + tw1->line[i++] + tw1->line[i++]] += 1;
+			unicode[0][(int)tw1->line[i] + (int)tw1->line[i+1] + (int)tw1->line[i+2]] += 1;
+			//printf("Unicode[0][%d]++\n", tw1->line[i] + tw1->line[i+1] + tw1->line[i+2]);
 		} else if (actChar < 248) { // 1111 0xxx --> 4 Byte{
-			unicode[0][tw1->line[i] + tw1->line[i++] + tw1->line[i++]
-					+ tw1->line[i++]] += 1;
+			unicode[0][(int)tw1->line[i] + (int)tw1->line[i+1] + (int)tw1->line[i+2]
+					+ (int)tw1->line[i+3]] += 1;
+			//printf("Unicode[0][%d]++\n",tw1->line[i] + tw1->line[i+1] + tw1->line[i+2] + tw1->line[i+3]);
 		//	printf("4 Byte\n");
 		} else if (actChar < 252) { // 1111 10xx --> 5 Byte{
-			unicode[0][tw1->line[i] + tw1->line[i++] + tw1->line[i++]
-					+ tw1->line[i++] + tw1->line[i++]] += 1;
+			unicode[0][(int)tw1->line[i] + (int)tw1->line[i+1] + (int)tw1->line[i+2]
+					+ (int)tw1->line[i+3] + (int)tw1->line[i+4]] += 1;
+			//printf("Unicode[0][%d]++\n",tw1->line[i] + tw1->line[i+1] + tw1->line[i+2] + tw1->line[i+3] + tw1->line[i+4]);
 			printf("5 Byte\n");
 		} else if (actChar < 254) { // 1111 110x --> 6 Byte{
-			unicode[0][tw1->line[i] + tw1->line[i++] + tw1->line[i++]
-					+ tw1->line[i++] + tw1->line[i++] + tw1->line[i++]] += 1;
+			unicode[0][(int)tw1->line[i] + (int)tw1->line[i+1] + (int)tw1->line[i+2]
+					+ (int)tw1->line[i+3] + (int)tw1->line[i+4] + (int)tw1->line[i+5]] += 1;
+			//printf("Unicode[0][%d]++\n", tw1->line[i] + tw1->line[i+1] + tw1->line[i+2] + tw1->line[i+3] + tw1->line[i+4] + tw1->line[i+5]);
 			printf("6 Byte\n");
 		}
 	}
 	for (int i = 0; i < strlen(tw2->line); i++) {
 		int actChar = (int) tw2->line[i];
 		if (actChar < 128) { // 0xxx xxxx --> befindet sich im ASCII bereich
-			unicode[1][tw2->line[i]] += 1;
+			unicode[1][(int)tw2->line[i]] += 1;
 		} else if (actChar < 224) { // 110x xxxx --> UTF8 Encoding beginnt 2Byte
-			unicode[1][tw2->line[i] + tw2->line[i++]] += 1;
+			unicode[1][tw2->line[i] + tw2->line[i+1]] += 1;
 		} else if (actChar < 240) { // 1110 xxxx --> 3 Byte
-			unicode[1][tw2->line[i] + tw2->line[i++] + tw2->line[i++]] += 1;
+			unicode[1][tw2->line[i] + tw2->line[i+1] + tw2->line[i+2]] += 1;
 		} else if (actChar < 248) { // 1111 xxxx --> 4 Byte{
-			unicode[1][tw2->line[i] + tw2->line[i++] + tw2->line[i++]
-					+ tw2->line[i++]] += 1;
+			unicode[1][tw2->line[i] + tw2->line[i+1] + tw2->line[i+2]
+					+ tw2->line[i+3]] += 1;
 			//printf("4 Byte\n");
 		} else if (actChar < 252) { // 1111 1xxx --> 5 Byte{
-			unicode[1][tw2->line[i] + tw2->line[i++] + tw2->line[i++]
-					+ tw2->line[i++] + tw2->line[i++]] += 1;
+			unicode[1][tw2->line[i] + tw2->line[i+1] + tw2->line[i+2]
+					+ tw2->line[i+3] + tw2->line[i+4]] += 1;
 			printf("5 Byte\n");
 		} else if (actChar < 254) { // 1111 1xxx --> 6 Byte{
-			unicode[1][tw2->line[i] + tw2->line[i++] + tw2->line[i++]
-					+ tw2->line[i++] + tw2->line[i++] + tw2->line[i++]] += 1;
+			unicode[1][tw2->line[i] + tw2->line[i+1] + tw2->line[i+2]
+					+ tw2->line[i+3] + tw2->line[i+4] + tw2->line[i+5]] += 1;
 			printf("6 Byte\n");
 		}
 	}
 	for (int i = 0; i < UNICODE_ARRAY_LENGTH; i++) {
+
+
 		if (unicode[0][i] > unicode[1][i]) {
+			tw1->smallestUniCode = i;
+			tw1->countSmallest = unicode[0][i];
 			if (tw1->keywords == 0) {
-				printf("%s --> %d -> %d --> %c\n", tw1->line, i, unicode[0][i],(char)i);
-				printf("%s --> %d -> %d --> %c\n", tw2->line, i, unicode[1][i],(char)i);
-				printf(
-						"-------------------------------------------------------------------------------\n");
+				//printf("%s --> %d -> %d --> %c\n", tw1->line, i, unicode[0][i],(char)i);
+				//printf("%s --> %d -> %d --> %c\n", tw2->line, i, unicode[1][i],(char)i);
+				//printf(
+				//		"-------------------------------------------------------------------------------\n");
 			}
 			return -1;
 		} else if (unicode[0][i] < unicode[1][i]) {
+			tw2->smallestUniCode = i;
+			tw2->countSmallest = unicode[1][i];
 			if (tw2->keywords == 0) {
-				printf("%s --> %d -> %d --> %c\n", tw1->line, i, unicode[0][i],(char)i);
-				printf("%s --> %d -> %d --> %c\n", tw2->line, i, unicode[1][i],(char)i);
-				printf(
-						"-------------------------------------------------------------------------------\n");
+				//printf("%s --> %d -> %d --> %c\n", tw1->line, i, unicode[0][i],(char)i);
+				//printf("%s --> %d -> %d --> %c\n", tw2->line, i, unicode[1][i],(char)i);
+				//printf(
+				//		"-------------------------------------------------------------------------------\n");
 			}
 			return 1;
 		}
@@ -107,6 +119,8 @@ int compare(const void *c1, const void *c2) {
 
 	struct tweetData *tw1 = (struct tweetData*) c1;
 	struct tweetData *tw2 = (struct tweetData*) c2;
+
+	//printf("compare");
 
 	if (tw1->keywords > tw2->keywords) {
 		return -1;
