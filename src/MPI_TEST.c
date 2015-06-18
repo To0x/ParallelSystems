@@ -19,7 +19,7 @@
 #include <time.h>
 #include <sys/time.h>
 
-#define NUMBEROFTWEETS 65537
+#define NUMBEROFTWEETS 65536
 
 int main(int argc, char* argv[]) {
 //	int my_rank; /* rank of process */
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
 
 	for (int j = 0; j < NUMBEROFTWEETS; j += 1) {
 		if (test[j].line != NULL) {
-			fprintf(f, "%s --> KW: %d, smallest: %d, count: %d\n", test[j].line, test[j].keywords, test[j].smallestUniCode, test[j].countSmallest);
+			fprintf(f, "%s --> KW: %d, smallest: %lu, count: %d\n", test[j].line, test[j].keywords, test[j].smallestUniCode, test[j].countSmallest);
 			//fprintf(f, "%s\n", test[j].line);
 			//printf("%d: %s, keyWords: %d\n", j, test[j].line, test[j].keywords);
 //			printf("%d: %s - Hashtags: %d, Smileys: %d, Keywords: %d\n", j,

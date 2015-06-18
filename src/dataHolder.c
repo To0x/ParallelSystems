@@ -17,7 +17,7 @@ void resetTweetData(struct tweetData *td) {
 	td->hashtags = 0;
 	td->keywords = 0;
 	td->smiles = 0;
-	td->smallestUniCode = 255;
+	td->smallestUniCode = 25500;
 	td->countSmallest = 0;
 }
 
