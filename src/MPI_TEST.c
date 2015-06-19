@@ -19,7 +19,7 @@
 #include <time.h>
 #include <sys/time.h>
 
-#define NUMBEROFTWEETS 65537
+#define NUMBEROFTWEETS 65536
 
 int main(int argc, char* argv[]) {
 //	int my_rank; /* rank of process */
@@ -95,6 +95,9 @@ int main(int argc, char* argv[]) {
 
 		test[numberOfTweets] = *td;
 		numberOfTweets++;
+
+		//if (numberOfTweets == 1000)
+		//	break;
 	}
 	
 	// Calc time
@@ -103,7 +106,7 @@ int main(int argc, char* argv[]) {
 	long microsec2 = ((unsigned long long) time2.tv_sec * 1000000)
 			+ time2.tv_usec;
 	time_t t2 = time(NULL);
-	float timeToSort = quickSort(test, NUMBEROFTWEETS + 1);
+	float timeToSort = quickSort(test, numberOfTweets);
 
 //	// Unicode sorting
 //	struct tweetData *sortedTweets = (struct tweetData*) malloc(
@@ -137,8 +140,8 @@ int main(int argc, char* argv[]) {
 
 	for (int j = 0; j < NUMBEROFTWEETS; j += 1) {
 		if (test[j].line != NULL) {
-			fprintf(f, "%s --> KW: %d, smallest: %d, count: %d\n", test[j].line, test[j].keywords, test[j].smallestUniCode, test[j].countSmallest);
-			//fprintf(f, "%s\n", test[j].line);
+			//fprintf(f, "%s --> KW: %d, smallest: %ld, count: %d\n", test[j].line, test[j].keywords, test[j].smallestUniCode, test[j].countSmallest);
+			fprintf(f, "%s\n", test[j].line);
 			//printf("%d: %s, keyWords: %d\n", j, test[j].line, test[j].keywords);
 //			printf("%d: %s - Hashtags: %d, Smileys: %d, Keywords: %d\n", j,
 //					test[j].line, test[j].hashtags, test[j].smiles,

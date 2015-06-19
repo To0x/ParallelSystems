@@ -10,6 +10,7 @@
 #include <time.h>
 #include <string.h>
 #include "dataHolder.h"
+#include <limits.h>
 
 #define UNICODE_ARRAY_LENGTH 15000
 
@@ -25,6 +26,10 @@ void Bucket_Sort(int array[], int n) {
 	for (i = 0, j = 0; i < n; i++)
 		for (; count[i] > 0; (count[i])--)
 			array[j++] = i;
+}
+
+/*getSmallestUnicode(unsigned char *tweetString, int offset) {
+
 }
 
 int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
@@ -114,13 +119,137 @@ int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
 	}
 	return 0;
 }
+*/
+long getSmallestUnicode(unsigned char *currentLine, long offset, int *count) {
+
+	//unsigned char *currentLine = tweet->line;
+	int currentChar;
+
+	long smallestUni = 1500000;
+
+	while ((currentChar = (int)*currentLine) != '\0') {
+
+		if (currentChar < 128) { // ASCII
+			if (currentChar < smallestUni && currentChar > offset) {
+				smallestUni = currentChar;
+				*count = 0;
+			}
+
+			if (currentChar == smallestUni)
+				(*count)++;
+		}
+		else if (currentChar < 224) {
+			//printf("2 byte!\n");
+			currentLine++;
+			currentChar += *currentLine;
+
+			if (currentChar < smallestUni  && currentChar > offset) {
+				smallestUni = currentChar;
+				*count = 0;
+			}
+
+			if (currentChar == smallestUni)
+				(*count)++;
+
+		} else if (currentChar < 240) {
+			//printf("3 byte!\n");
+			currentLine++;
+			currentChar += *currentLine;
+			currentLine++;
+			currentChar += *currentLine;
+
+			if (currentChar < smallestUni  && currentChar > offset) {
+				smallestUni = currentChar;
+				*count = 0;
+			}
+
+			if (currentChar == smallestUni)
+				(*count)++;
+
+		} else {
+			//printf("4 byte!\n");
+			currentLine++;
+			currentChar += *currentLine;
+			currentLine++;
+			currentChar += *currentLine;
+			currentLine++;
+			currentChar += *currentLine;
+
+			if (currentChar < smallestUni  && currentChar > offset) {
+				smallestUni = currentChar;
+				*count = 0;
+			}
+
+			if (currentChar == smallestUni)
+				(*count)++;
+		}
+
+		currentLine++;
+	}
+	//printf("Smallest Unicode: %ld[%d] in String: %s\n", smallestUni, *count, currentLine);
+	return smallestUni;
+}
+
+int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
+
+
+	//printf("%s \n vs. \n%s\n", tw1->line, tw2->line);
+
+	/*
+	unsigned char *lineBuffer1 = (unsigned char *)malloc(sizeof(unsigned char) * strlen(tw1->line));
+	unsigned char *lineBuffer2 = (unsigned char *)malloc(sizeof(unsigned char) * strlen(tw2->line));
+
+	strcpy(lineBuffer1, tw1->line);
+	strcpy(lineBuffer2, tw2->line);
+
+	printf("%s", lineBuffer1);
+	fflush(stdout);
+*/
+	long uniCode1 = 0l, uniCode2 = 0l;
+	int uniCount1 = 0, uniCount2 = 0;
+
+	int i = 0;
+	while (i != 5) {
+		uniCode1 = getSmallestUnicode(tw1->line, (uniCode1), &uniCount1);
+		uniCode2 = getSmallestUnicode(tw2->line, (uniCode2), &uniCount2);
+
+
+		if (uniCode1 != uniCode2 || uniCount1 != uniCount2)
+			break;
+
+		i++;
+	}
+
+	//long uniCode1 = getSmallestUnicode(tw1->line, &uniCount1, 0);
+	//printf("Smallest Unicode: %ld[%d] in String: %s\n", uniCode1, uniCount1, tw1->line);
+	tw1->smallestUniCode = uniCode1;
+	tw1->countSmallest = uniCount1;
+
+	//printf("Smallest Unicode: %ld[%d] in String: %s\n", uniCode2, uniCount2, tw2->line);
+	tw2->smallestUniCode = uniCode2;
+	tw2->countSmallest = uniCount2;
+
+	if (uniCode1 < uniCode2)
+		return -1;
+	else if (uniCode1 == uniCode2) {
+		if (uniCount1 > uniCount2 )
+			return -1;
+		else if (uniCount1 < uniCount2)
+			return 1;
+		else
+			return 0;
+	} else
+		return 1;
+}
 
 int compare(const void *c1, const void *c2) {
 
 	struct tweetData *tw1 = (struct tweetData*) c1;
 	struct tweetData *tw2 = (struct tweetData*) c2;
 
-	//printf("compare");
+	//printf("compare\n");
+	//printf("Keywords1: %d %s\n", tw1->keywords, tw1->line);
+	//printf("keywords2: %d %s\n", tw2->keywords, tw2->line);
 
 	if (tw1->keywords > tw2->keywords) {
 		return -1;
@@ -135,12 +264,12 @@ int compare(const void *c1, const void *c2) {
 }
 
 float quickSort(struct tweetData *toSort, long len) {
-	time_t t1 = time(NULL);
+	//time_t t1 = time(NULL);
 	//printf("time %lld", (long long)t1);
 	qsort(toSort, len, sizeof(struct tweetData), compare);
-	time_t t2 = time(NULL);
+	//time_t t2 = time(NULL);
 	//printf("time %lld", (long long)t2);
 
-	//return 0.0;
-	return (float) (t2 - t1);
+	return 0.0;
+	//return (float) (t2 - t1);
 }
