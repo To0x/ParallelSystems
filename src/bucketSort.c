@@ -11,6 +11,7 @@
 #include <string.h>
 #include "dataHolder.h"
 #include <limits.h>
+#include <unistd.h>
 
 #define UNICODE_ARRAY_LENGTH 15000
 
@@ -120,12 +121,19 @@ int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
 	return 0;
 }
 */
-long getSmallestUnicode(unsigned char *currentLine, long offset, int *count) {
+unsigned long long int concatenate(unsigned x, unsigned y) {
+    unsigned long long int pow = 10;
+    while(y >= pow)
+        pow *= 10;
+    return x * pow + y;
+}
+
+unsigned long long int getSmallestUnicode(unsigned char *currentLine, unsigned long long int offset, int *count, int *noMoreResults) {
 
 	//unsigned char *currentLine = tweet->line;
-	int currentChar;
-
-	long smallestUni = 1500000;
+	unsigned long long int currentChar;
+	unsigned long long int smallestUni = ULLONG_MAX;
+	//*count = 0;
 
 	while ((currentChar = (int)*currentLine) != '\0') {
 
@@ -141,7 +149,8 @@ long getSmallestUnicode(unsigned char *currentLine, long offset, int *count) {
 		else if (currentChar < 224) {
 			//printf("2 byte!\n");
 			currentLine++;
-			currentChar += *currentLine;
+			currentChar = concatenate(currentChar, *currentLine);
+			//currentChar += *currentLine;
 
 			if (currentChar < smallestUni  && currentChar > offset) {
 				smallestUni = currentChar;
@@ -154,9 +163,11 @@ long getSmallestUnicode(unsigned char *currentLine, long offset, int *count) {
 		} else if (currentChar < 240) {
 			//printf("3 byte!\n");
 			currentLine++;
-			currentChar += *currentLine;
+			currentChar = concatenate(currentChar, *currentLine);
+			//currentChar += *currentLine;
 			currentLine++;
-			currentChar += *currentLine;
+			currentChar = concatenate(currentChar, *currentLine);
+			//currentChar += *currentLine;
 
 			if (currentChar < smallestUni  && currentChar > offset) {
 				smallestUni = currentChar;
@@ -168,12 +179,25 @@ long getSmallestUnicode(unsigned char *currentLine, long offset, int *count) {
 
 		} else {
 			//printf("4 byte!\n");
+			//sleep(5);
 			currentLine++;
-			currentChar += *currentLine;
+			//printf("actChar: %llu concat with: %d\n", currentChar, *currentLine);
+			currentChar = concatenate(currentChar, *currentLine);
+			//printf("new char: %llu\n", currentChar);
+			//sleep(5);
+			//currentChar += *currentLine;
 			currentLine++;
-			currentChar += *currentLine;
+			//printf("actChar: %llu concat with: %d\n", currentChar, *currentLine);
+			currentChar = concatenate(currentChar, *currentLine);
+			//printf("new char: %llu\n", currentChar);
+			//sleep(5);
+			//currentChar += *currentLine;
 			currentLine++;
-			currentChar += *currentLine;
+			//printf("actChar: %llu concat with: %d\n", currentChar, *currentLine);
+			currentChar = concatenate(currentChar, *currentLine);
+			//printf("new char: %llu\n", currentChar);
+			//sleep(5);
+			//currentChar += *currentLine;
 
 			if (currentChar < smallestUni  && currentChar > offset) {
 				smallestUni = currentChar;
@@ -186,12 +210,33 @@ long getSmallestUnicode(unsigned char *currentLine, long offset, int *count) {
 
 		currentLine++;
 	}
+
+	if (smallestUni == ULLONG_MAX) {
+		smallestUni = offset;
+		(*noMoreResults) = 1;
+	}
+
+
 	//printf("Smallest Unicode: %ld[%d] in String: %s\n", smallestUni, *count, currentLine);
 	return smallestUni;
 }
 
+int equals(unsigned char *tw1, unsigned char *tw2) {
+
+	unsigned char currentChar;
+
+	while (*tw1 != '\0') {
+		if (*tw1 != *tw2)
+			return 0;
+		tw1++; tw2++;
+	}
+	return 1;
+}
+
 int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
 
+	if (equals(tw1->line, tw2->line))
+		return 0;
 
 	//printf("%s \n vs. \n%s\n", tw1->line, tw2->line);
 
@@ -205,19 +250,54 @@ int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
 	printf("%s", lineBuffer1);
 	fflush(stdout);
 */
-	long uniCode1 = 0l, uniCode2 = 0l;
-	int uniCount1 = 0, uniCount2 = 0;
+	unsigned long long int uniCode1 = 0l, uniCode2 = 0l;
+	int uniCount1 = 0, uniCount2 = 0, noMoreResults1 = 0, noMoreResults2 = 0;
 
 	int i = 0;
-	while (i != 5) {
-		uniCode1 = getSmallestUnicode(tw1->line, (uniCode1), &uniCount1);
-		uniCode2 = getSmallestUnicode(tw2->line, (uniCode2), &uniCount2);
+	int sameFlag = 0;
+	while (1) {
+		//printf("again!");
+		//fflush(stdout);
+		//sleep(5);
+		uniCode1 = getSmallestUnicode(tw1->line, uniCode1, &uniCount1, &noMoreResults1);
+		uniCode2 = getSmallestUnicode(tw2->line, uniCode2, &uniCount2, &noMoreResults2);
 
+		/*if (sameFlag) {
+			//printf("unicodes are the same\n");
+			printf("Durchlauf: %d", i);
+			printf("string1: %s\nstring2: %s\n", tw1->line, tw2->line);
+			printf("smallest1: %ld, count1: %d\n", uniCode1, uniCount1);
+			printf("smallest2: %ld, count2: %d\n", uniCode2, uniCount2);
+		}*/
 
-		if (uniCode1 != uniCode2 || uniCount1 != uniCount2)
+		//break;
+
+		if (uniCode1 != uniCode2 || uniCount1 != uniCount2 || noMoreResults1 == 1 || noMoreResults2 == 1)
 			break;
 
+		/*
+		printf("unicodes are the same\n");
+		printf("string1: %s\nstring2: %s\n", tw1->line, tw2->line);
+		printf("smallest1: %ld, count1: %d\n", uniCode1, uniCount1);
+		printf("smallest2: %ld, count2: %d\n", uniCode2, uniCount2);
+		sameFlag = 1;
+
+		sleep(20);
+		*/
+
 		i++;
+
+		if (i == 15){
+			//printf("oO!\n");
+			//printf("%s\n%s\n", tw1->line, tw2->line);
+			break;
+			/*printf("keine Übereinstimmung gefunden!\n");
+			printf("s1: %s\ns2: %s\n", tw1->line, tw2->line);
+
+			printf("equals %d", equals(tw1->line, tw2->line));
+			//sleep(20);
+			 */
+		}
 	}
 
 	//long uniCode1 = getSmallestUnicode(tw1->line, &uniCount1, 0);
@@ -230,22 +310,45 @@ int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
 	tw2->countSmallest = uniCount2;
 
 	if (uniCode1 < uniCode2)
+	{
 		return -1;
-	else if (uniCode1 == uniCode2) {
-		if (uniCount1 > uniCount2 )
+	}
+	else if (uniCode1 == uniCode2)
+	{
+		if (uniCount1 > uniCount2)
+		{
 			return -1;
+		}
 		else if (uniCount1 < uniCount2)
+		{
 			return 1;
-		else
+		}
+		else if (uniCount1 == uniCount2)
+		{
+			if (noMoreResults1 == 1)
+				return 1;
+			if (noMoreResults2 == 1)
+				return -1;
+
 			return 0;
-	} else
+		}
+	}
+	else
+	{
 		return 1;
+	}
 }
 
 int compare(const void *c1, const void *c2) {
 
+	//static unsigned long long int aufrufe = 0;
+	//aufrufe++;
+
 	struct tweetData *tw1 = (struct tweetData*) c1;
 	struct tweetData *tw2 = (struct tweetData*) c2;
+
+	//printf("%llu\n", aufrufe);
+	//fflush(stdout);
 
 	//printf("compare\n");
 	//printf("Keywords1: %d %s\n", tw1->keywords, tw1->line);
@@ -266,7 +369,7 @@ int compare(const void *c1, const void *c2) {
 float quickSort(struct tweetData *toSort, long len) {
 	//time_t t1 = time(NULL);
 	//printf("time %lld", (long long)t1);
-	qsort(toSort, len, sizeof(struct tweetData), compare);
+	qsort(toSort, (int)len, sizeof(struct tweetData), compare);
 	//time_t t2 = time(NULL);
 	//printf("time %lld", (long long)t2);
 

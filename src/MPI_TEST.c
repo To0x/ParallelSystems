@@ -19,7 +19,7 @@
 #include <time.h>
 #include <sys/time.h>
 
-#define NUMBEROFTWEETS 65536
+#define NUMBEROFTWEETS 65537
 
 int main(int argc, char* argv[]) {
 //	int my_rank; /* rank of process */
@@ -59,8 +59,7 @@ int main(int argc, char* argv[]) {
 	struct tweetData *td;
 	printf("try to allocate %lu kbytes\n",
 			(sizeof(struct tweetData*) * NUMBEROFTWEETS) / 1000);
-	struct tweetData *test = (struct tweetData*) malloc(
-			sizeof(struct tweetData) * NUMBEROFTWEETS);
+	struct tweetData *test = (struct tweetData*) malloc(sizeof(struct tweetData) * NUMBEROFTWEETS);
 	fflush (stdout);
 
 	time_t t1 = time(NULL);
@@ -83,6 +82,12 @@ int main(int argc, char* argv[]) {
 		}
 
 		td = parseTweet(line, "la");
+
+		//int count;
+		//unsigned long long int test2222 = getSmallestUnicode(td->line, 0, &count);
+		//td->smallestUniCode = test2222;
+		//printf("%llu", test2222);
+
 		allocated += td->size;
 //		if (numberOfTweets % 1000 == 0) {
 //			printf("%li: %s - Hashtags: %d, Smileys: %d, Keywords %d\n",
@@ -106,6 +111,7 @@ int main(int argc, char* argv[]) {
 	long microsec2 = ((unsigned long long) time2.tv_sec * 1000000)
 			+ time2.tv_usec;
 	time_t t2 = time(NULL);
+	printf("numbers written: %d", numberOfTweets);
 	float timeToSort = quickSort(test, numberOfTweets);
 
 //	// Unicode sorting
@@ -129,7 +135,7 @@ int main(int argc, char* argv[]) {
 //	}
 
 	
-	FILE *f = fopen("out.txt", "w");
+	FILE *f = fopen("out3.txt", "w");
 	if (f == NULL)
 	{
 	    printf("Error opening file!\n");
@@ -140,8 +146,8 @@ int main(int argc, char* argv[]) {
 
 	for (int j = 0; j < NUMBEROFTWEETS; j += 1) {
 		if (test[j].line != NULL) {
-			//fprintf(f, "%s --> KW: %d, smallest: %ld, count: %d\n", test[j].line, test[j].keywords, test[j].smallestUniCode, test[j].countSmallest);
-			fprintf(f, "%s\n", test[j].line);
+			fprintf(f, "%s --> KW: %d, smallest: %llu, count: %d\n", test[j].line, test[j].keywords, test[j].smallestUniCode, test[j].countSmallest);
+			//fprintf(f, "%s\n", test[j].line);
 			//printf("%d: %s, keyWords: %d\n", j, test[j].line, test[j].keywords);
 //			printf("%d: %s - Hashtags: %d, Smileys: %d, Keywords: %d\n", j,
 //					test[j].line, test[j].hashtags, test[j].smiles,

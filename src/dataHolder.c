@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "dataHolder.h"
+#include <limits.h>
 
 //#define PARSE(__x__, __y__) y=((unsigned char)*(++__x__);)
 
@@ -17,7 +18,7 @@ void resetTweetData(struct tweetData *td) {
 	td->hashtags = 0;
 	td->keywords = 0;
 	td->smiles = 0;
-	td->smallestUniCode = 900000;
+	td->smallestUniCode = ULLONG_MAX;
 	td->countSmallest = 0;
 }
 
@@ -55,7 +56,7 @@ struct tweetData* parseTweet(unsigned char* tweetString, char* keyWord) {
 	resetTweetData(thisData);
 	thisData->line = tweetString;
 	// TODO: CAST!
-	thisData->size = sizeof(struct tweetData) + (sizeof(unsigned char) * ((unsigned long)strlen(tweetString)) + 1);
+	thisData->size = sizeof(struct tweetData) + (sizeof(unsigned char) * ((unsigned long)(sizeof(tweetString) / sizeof(unsigned char))) + 1);
 
 	while ((actChar = *tweetString) != '\0') {
 

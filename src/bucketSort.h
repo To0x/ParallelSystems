@@ -10,5 +10,5 @@
 
 void Bucket_Sort(int array[], int n);
 float quickSort(struct tweetData *toSort, long len);
-
+unsigned long long int getSmallestUnicode(unsigned char *currentLine, unsigned long long int offset, int *count);
 #endif /* BUCKETSORT_H_ */
