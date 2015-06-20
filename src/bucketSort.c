@@ -14,6 +14,7 @@
 #include <unistd.h>
 
 #define UNICODE_ARRAY_LENGTH 15000
+#define LOOKING_FOR 52539
 
 void Bucket_Sort(int array[], int n) {
 	int i, j;
@@ -135,7 +136,7 @@ unsigned long long int getSmallestUnicode(unsigned char *currentLine, unsigned l
 	unsigned long long int smallestUni = ULLONG_MAX;
 	//*count = 0;
 
-	while ((currentChar = (int)*currentLine) != '\0') {
+	while ((currentChar = (unsigned long long int)*currentLine) != '\0') {
 
 		if (currentChar < 128) { // ASCII
 			if (currentChar < smallestUni && currentChar > offset) {
@@ -212,7 +213,7 @@ unsigned long long int getSmallestUnicode(unsigned char *currentLine, unsigned l
 	}
 
 	if (smallestUni == ULLONG_MAX) {
-		smallestUni = offset;
+		//smallestUni = offset;
 		(*noMoreResults) = 1;
 	}
 
@@ -223,20 +224,29 @@ unsigned long long int getSmallestUnicode(unsigned char *currentLine, unsigned l
 
 int equals(unsigned char *tw1, unsigned char *tw2) {
 
-	unsigned char currentChar;
+	unsigned char *backUptw1 = tw1;
+	unsigned char *backUptw2 = tw2;
+
+	int result = 1;
 
 	while (*tw1 != '\0') {
-		if (*tw1 != *tw2)
-			return 0;
+		if (*tw1 != *tw2) {
+			result = 0;
+			break;
+		}
 		tw1++; tw2++;
 	}
-	return 1;
+
+	tw1 = backUptw1;
+	tw2 = backUptw2;
+
+	return result;
 }
 
-int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
+int compareHistogram(tweetData_t *tw1, tweetData_t *tw2) {
 
-	if (equals(tw1->line, tw2->line))
-		return 0;
+	//if (equals(tw1->line, tw2->line))
+	//	return 0;
 
 	//printf("%s \n vs. \n%s\n", tw1->line, tw2->line);
 
@@ -249,12 +259,56 @@ int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
 
 	printf("%s", lineBuffer1);
 	fflush(stdout);
-*/
+	 */
 	unsigned long long int uniCode1 = 0l, uniCode2 = 0l;
 	int uniCount1 = 0, uniCount2 = 0, noMoreResults1 = 0, noMoreResults2 = 0;
+	int result = QSORT_EQUALS;
 
-	int i = 0;
-	int sameFlag = 0;
+	// first round
+	uniCode1 = getSmallestUnicode(tw1->line, 0, &uniCount1, &noMoreResults1);
+	uniCode2 = getSmallestUnicode(tw2->line, 0, &uniCount2, &noMoreResults2);
+
+	int i = 1;
+	int reRoundFlag = 0;
+
+	if (uniCode1 == uniCode2 && uniCount1 == uniCount2) {
+		reRoundFlag = 1;
+
+		if (tw1->number == LOOKING_FOR || tw2->number == LOOKING_FOR) {
+		printf("1: %s\nvs.\n2: %s\n", tw1->line, tw2->line);
+		printf("TW1_old: UNI: %llu, CTN: %d\n", tw1->smallestUniCode, tw1->countSmallest);
+		printf("TW2_old: UNI: %llu, CTN: %d\n", tw2->smallestUniCode, tw2->countSmallest);
+		}
+
+
+		while (1) {
+			uniCode1 = getSmallestUnicode(tw1->line, uniCode1, &uniCount1, &noMoreResults1);
+			uniCode2 = getSmallestUnicode(tw2->line, uniCode2, &uniCount2, &noMoreResults2);
+
+			if (tw1->number == LOOKING_FOR || tw2->number == LOOKING_FOR) {
+			printf("--------RE-ROUND  %d ---------\n", i);
+			printf("TW1_NEW: UNI: %llu, CTN: %d\n", uniCode1, uniCount1);
+			printf("TW2_NEW: UNI: %llu, CTN: %d\n", uniCode2, uniCount2);
+			//printf("RESULT: %d\n\n\n", result);
+			}
+
+			if (uniCode1 != uniCode2 || uniCount1 != uniCount2 || noMoreResults1 == 1 || noMoreResults2 == 1) {
+				if (tw1->number == LOOKING_FOR || tw2->number == LOOKING_FOR)
+					printf("abbruch");
+				break;
+			}
+
+			if (i == 1000) {
+				fprintf(stderr,"NOW!");
+				fflush(stdout);
+				break;
+			}
+
+			i++;
+		}
+	}
+
+	/*
 	while (1) {
 		//printf("again!");
 		//fflush(stdout);
@@ -268,7 +322,7 @@ int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
 			printf("string1: %s\nstring2: %s\n", tw1->line, tw2->line);
 			printf("smallest1: %ld, count1: %d\n", uniCode1, uniCount1);
 			printf("smallest2: %ld, count2: %d\n", uniCode2, uniCount2);
-		}*/
+		}
 
 		//break;
 
@@ -283,7 +337,7 @@ int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
 		sameFlag = 1;
 
 		sleep(20);
-		*/
+
 
 		i++;
 
@@ -296,19 +350,84 @@ int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
 
 			printf("equals %d", equals(tw1->line, tw2->line));
 			//sleep(20);
-			 */
+
 		}
 	}
+*/
 
 	//long uniCode1 = getSmallestUnicode(tw1->line, &uniCount1, 0);
 	//printf("Smallest Unicode: %ld[%d] in String: %s\n", uniCode1, uniCount1, tw1->line);
-	tw1->smallestUniCode = uniCode1;
-	tw1->countSmallest = uniCount1;
 
-	//printf("Smallest Unicode: %ld[%d] in String: %s\n", uniCode2, uniCount2, tw2->line);
-	tw2->smallestUniCode = uniCode2;
-	tw2->countSmallest = uniCount2;
+	if (!reRoundFlag) {
+		tw1->smallestUniCode = uniCode1;
+		tw1->countSmallest = uniCount1;
 
+		//printf("Smallest Unicode: %ld[%d] in String: %s\n", uniCode2, uniCount2, tw2->line);
+		tw2->smallestUniCode = uniCode2;
+		tw2->countSmallest = uniCount2;
+	} else
+	{
+		tw1->reRoundSmallest = uniCode1;
+		tw1->reRoundCountSmallest = uniCount1;
+
+		tw2->reRoundSmallest = uniCode2;
+		tw2->reRoundCountSmallest = uniCount2;
+	}
+
+	/*
+	if (tw1->smallestUniCode < tw2->smallestUniCode)
+		result = P1_ABOVE_P2;
+
+	if (tw2->smallestUniCode < tw1->smallestUniCode)
+		result = P2_ABOVE_P1;
+
+	if (result == QSORT_EQUALS)
+	{
+		if (tw1->countSmallest > tw2->countSmallest)
+			result = P1_ABOVE_P2;
+
+		if (tw2->countSmallest > tw1->countSmallest)
+			result = P2_ABOVE_P1;
+	}
+	*/
+
+
+
+	if (uniCode1 < uniCode2)
+		result = P1_ABOVE_P2;
+
+	if (uniCode2 < uniCode1)
+		result = P2_ABOVE_P1;
+
+	if (result == QSORT_EQUALS)
+	{
+		if (uniCount1 > uniCount2)
+			result = P1_ABOVE_P2;
+
+		if (uniCount2 > uniCount1)
+			result = P2_ABOVE_P1;
+	}
+
+
+	if (tw1->number == LOOKING_FOR || tw2->number == LOOKING_FOR) {
+/*
+		printf("--------RE-ROUND *ding ding* ---------\n");
+		printf("1: %s\nvs.\n2: %s\n", tw1->line, tw2->line);
+		printf("TW1_old: UNI: %llu, CTN: %d\n", tw1->smallestUniCode, tw1->countSmallest);
+		printf("TW2_old: UNI: %llu, CTN: %d\n", tw2->smallestUniCode, tw2->countSmallest);
+		printf("TW1_NEW: UNI: %llu, CTN: %d\n", uniCode1, uniCount1);
+		printf("TW2_NEW: UNI: %llu, CTN: %d\n", uniCode2, uniCount2);
+		*/
+		printf("RESULT: %d\n\n\n", result);
+
+		//if (result == QSORT_EQUALS) {
+		//	fprintf(stderr, "No Result!!");
+		//}
+	}
+
+	return result;
+
+	/*
 	if (uniCode1 < uniCode2)
 	{
 		return -1;
@@ -337,6 +456,8 @@ int compareHistogram(struct tweetData *tw1, struct tweetData *tw2) {
 	{
 		return 1;
 	}
+	return 0;
+	*/
 }
 
 int compare(const void *c1, const void *c2) {
@@ -344,8 +465,10 @@ int compare(const void *c1, const void *c2) {
 	//static unsigned long long int aufrufe = 0;
 	//aufrufe++;
 
-	struct tweetData *tw1 = (struct tweetData*) c1;
-	struct tweetData *tw2 = (struct tweetData*) c2;
+	int result = QSORT_EQUALS;
+
+	tweetData_t *tw1 = (tweetData_t*) c1;
+	tweetData_t *tw2 = (tweetData_t*) c2;
 
 	//printf("%llu\n", aufrufe);
 	//fflush(stdout);
@@ -355,21 +478,41 @@ int compare(const void *c1, const void *c2) {
 	//printf("keywords2: %d %s\n", tw2->keywords, tw2->line);
 
 	if (tw1->keywords > tw2->keywords) {
-		return -1;
+		result = P1_ABOVE_P2;
+	}
+	if (tw2->keywords > tw1->keywords) {
+		result = P2_ABOVE_P1;
+	}
+
+	if (tw1->line != NULL && tw2->line != NULL && result == QSORT_EQUALS)
+		result = compareHistogram(tw1,tw2);
+
+	/*
+	printf("1: %s\nvs.\n2: %s\n", tw1->line, tw2->line);
+	printf("TW1: KW: %d, UNI: %llu, CTN: %d\n", tw1->keywords, tw1->smallestUniCode, tw1->countSmallest);
+	printf("TW2: KW: %d, UNI: %llu, CTN: %d\n", tw2->keywords, tw2->smallestUniCode, tw2->countSmallest);
+	printf("RESULT: %d\n\n\n", result);
+	*/
+
+	//fflush(stdout)
+
+	return result;
+
+	/*
 	} else if (tw1->keywords == tw2->keywords) {
 		if (tw1->line != NULL && tw2->line != NULL) {
 			return compareHistogram(tw1, tw2);
 		}
 		return 0;
 	} else {
-		return 1;
-	}
+		result = P1_AFTER_P2;
+	}*/
 }
 
 float quickSort(struct tweetData *toSort, long len) {
 	//time_t t1 = time(NULL);
 	//printf("time %lld", (long long)t1);
-	qsort(toSort, (int)len, sizeof(struct tweetData), compare);
+	qsort(toSort, len, sizeof(tweetData_t), compare);
 	//time_t t2 = time(NULL);
 	//printf("time %lld", (long long)t2);
 

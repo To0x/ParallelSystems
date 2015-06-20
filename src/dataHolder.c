@@ -14,12 +14,15 @@
 
 //#define PARSE(__x__, __y__) y=((unsigned char)*(++__x__);)
 
-void resetTweetData(struct tweetData *td) {
+void resetTweetData(tweetData_t *td) {
 	td->hashtags = 0;
 	td->keywords = 0;
 	td->smiles = 0;
 	td->smallestUniCode = ULLONG_MAX;
 	td->countSmallest = 0;
+	td->number = 0;
+	td->reRoundSmallest = ULLONG_MAX;
+	td->reRoundCountSmallest = 0;
 }
 
 unsigned char next(unsigned char *tweet) {
@@ -35,10 +38,10 @@ bool isKeyWord(unsigned char* tweetString, char* keyword) {
 	}
 
 	for (int i = 1; i < strlen(keyword); i++) {
-		if (tweetString[i] < 128 && tweetString[i] != keyword[i]) {
+		if ((int)tweetString[i] < 128 && tweetString[i] != keyword[i]) {
 			return false;
 		}
-		if(tweetString[i] > 128){
+		if((int)tweetString[i] > 128){
 			return false;
 		}
 	}
@@ -46,19 +49,19 @@ bool isKeyWord(unsigned char* tweetString, char* keyword) {
 	return true;
 }
 
-struct tweetData* parseTweet(unsigned char* tweetString, char* keyWord) {
+tweetData_t* parseTweet(unsigned char* tweetString, char* keyWord) {
 
-	unsigned char actChar;
+	int actChar;
 	int actCharByteLenght;
 
-	struct tweetData *thisData;
-	thisData = malloc(sizeof(struct tweetData));
+	tweetData_t *thisData;
+	thisData = malloc(sizeof(tweetData_t));
 	resetTweetData(thisData);
 	thisData->line = tweetString;
 	// TODO: CAST!
 	thisData->size = sizeof(struct tweetData) + (sizeof(unsigned char) * ((unsigned long)(sizeof(tweetString) / sizeof(unsigned char))) + 1);
 
-	while ((actChar = *tweetString) != '\0') {
+	while ((actChar = ((int)*tweetString)) != (int)'\0') {
 
 		if (actChar < 128) { // 0xxx xxxx --> befindet sich im ASCII bereich
 			actCharByteLenght = 1;

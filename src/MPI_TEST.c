@@ -19,7 +19,8 @@
 #include <time.h>
 #include <sys/time.h>
 
-#define NUMBEROFTWEETS 65537
+#define NUMBEROFTWEETS 70000
+//#define FILENAME test6.txt
 
 int main(int argc, char* argv[]) {
 //	int my_rank; /* rank of process */
@@ -56,10 +57,12 @@ int main(int argc, char* argv[]) {
 	unsigned char c;
 	unsigned char actInt;
 
-	struct tweetData *td;
+	tweetData_t *td;
 	printf("try to allocate %lu kbytes\n",
-			(sizeof(struct tweetData*) * NUMBEROFTWEETS) / 1000);
-	struct tweetData *test = (struct tweetData*) malloc(sizeof(struct tweetData) * NUMBEROFTWEETS);
+			(sizeof(tweetData_t*) * NUMBEROFTWEETS) / 1000);
+	tweetData_t test[NUMBEROFTWEETS];
+
+	//tweetData_t *test = (tweetData_t*) malloc(sizeof(tweetData_t) * (NUMBEROFTWEETS+1));
 	fflush (stdout);
 
 	time_t t1 = time(NULL);
@@ -74,6 +77,13 @@ int main(int argc, char* argv[]) {
 	while (!feof(fp)) {
 		unsigned char *line = readLine(fp);
 
+
+		if (numberOfTweets == 52539) {
+		    printf("%ld: %s\n", numberOfTweets, line);
+		    fflush(stdout);
+		}
+
+		    /*
 		if (numberOfTweets == (long) NUMBEROFTWEETS - 1) {
 			printf("\n\n");
 			printf("Should break now...\n");
@@ -81,7 +91,18 @@ int main(int argc, char* argv[]) {
 			break;
 		}
 
+		if (numberOfTweets == (long)65535)
+		{
+			printf("NOW!");
+			char actChar;
+			while ((actChar = *line) != '\0') {
+				printf("%d : %c", actChar, (int)actChar);
+				line++;
+			}
+		}
+*/
 		td = parseTweet(line, "la");
+		td->number = numberOfTweets;
 
 		//int count;
 		//unsigned long long int test2222 = getSmallestUnicode(td->line, 0, &count);
@@ -105,13 +126,15 @@ int main(int argc, char* argv[]) {
 		//	break;
 	}
 	
+	fclose(fp);
+
 	// Calc time
 	struct timeval time2;
 	gettimeofday(&time2, NULL);
 	long microsec2 = ((unsigned long long) time2.tv_sec * 1000000)
 			+ time2.tv_usec;
 	time_t t2 = time(NULL);
-	printf("numbers written: %d", numberOfTweets);
+	printf("numbers written: %ld", numberOfTweets);
 	float timeToSort = quickSort(test, numberOfTweets);
 
 //	// Unicode sorting
@@ -144,10 +167,10 @@ int main(int argc, char* argv[]) {
 
 	/* print some text */
 
-	for (int j = 0; j < NUMBEROFTWEETS; j += 1) {
+	for (int j = 0; j <= numberOfTweets; j++) {
 		if (test[j].line != NULL) {
-			fprintf(f, "%s --> KW: %d, smallest: %llu, count: %d\n", test[j].line, test[j].keywords, test[j].smallestUniCode, test[j].countSmallest);
-			//fprintf(f, "%s\n", test[j].line);
+			//fprintf(f, "[%d]: %s --> KW: %d, smallest: %llu, count: %d, reRound: %llu, count: %d\n",j, test[j].line, test[j].keywords, test[j].smallestUniCode, test[j].countSmallest, test[j].reRoundSmallest, test[j].reRoundCountSmallest);
+			fprintf(f, "%s\n", test[j].line);
 			//printf("%d: %s, keyWords: %d\n", j, test[j].line, test[j].keywords);
 //			printf("%d: %s - Hashtags: %d, Smileys: %d, Keywords: %d\n", j,
 //					test[j].line, test[j].hashtags, test[j].smiles,
@@ -157,6 +180,8 @@ int main(int argc, char* argv[]) {
 			//	break;
 		}
 	}
+
+	fclose(f);
 
 	printf("einlesen diff: %ld msec\n", (long) (microsec2 - microsec1) / 1000);
 	printf("sortieren %8.4f\n", timeToSort);
