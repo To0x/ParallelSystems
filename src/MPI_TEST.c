@@ -19,8 +19,8 @@
 #include <time.h>
 #include <sys/time.h>
 
-#define NUMBEROFTWEETS 70000
-//#define FILENAME test6.txt
+#define NUMBEROFTWEETS 2100000
+
 
 int main(int argc, char* argv[]) {
 //	int my_rank; /* rank of process */
@@ -39,9 +39,13 @@ int main(int argc, char* argv[]) {
 	// Show keyword
 	printf("Tweets will be sorted by keyword 'la'.\n");
 
+	struct timeval time1, time2;
+	unsigned long long timeToReadAndInit = 0l, timeToSort = 0l, timeToWrite = 0l, timeForAll = 0l,
+			microsec1, microsec2;
+
 	// File Initializations
 	FILE *fp;
-	fp = fopen("./65536tweets.0", "rb+, ccs=UTF-8");
+	fp = fopen("./2097152tweets.0", "rb+, ccs=UTF-8");
 	if (fp == NULL) {
 		printf("file not accessible!\n");
 		exit (EXIT_FAILURE);
@@ -60,28 +64,20 @@ int main(int argc, char* argv[]) {
 	tweetData_t *td;
 	printf("try to allocate %lu kbytes\n",
 			(sizeof(tweetData_t*) * NUMBEROFTWEETS) / 1000);
-	tweetData_t test[NUMBEROFTWEETS];
+	//tweetData_t test[NUMBEROFTWEETS];
 
-	//tweetData_t *test = (tweetData_t*) malloc(sizeof(tweetData_t) * (NUMBEROFTWEETS+1));
+	tweetData_t *test = (tweetData_t*) malloc(sizeof(tweetData_t) * (NUMBEROFTWEETS+1));
 	fflush (stdout);
 
 	time_t t1 = time(NULL);
 	long numberOfTweets = 0;
 
-	struct timeval time1;
 	gettimeofday(&time1, NULL);
-	long microsec1 = ((unsigned long long) time1.tv_sec * 1000000)
-			+ time1.tv_usec;
+	microsec1 = ((unsigned long long) time1.tv_sec * 1000000) + time1.tv_usec;
 
 	long long allocated = 0;
 	while (!feof(fp)) {
 		unsigned char *line = readLine(fp);
-
-
-		if (numberOfTweets == 52539) {
-		    printf("%ld: %s\n", numberOfTweets, line);
-		    fflush(stdout);
-		}
 
 		    /*
 		if (numberOfTweets == (long) NUMBEROFTWEETS - 1) {
@@ -102,14 +98,14 @@ int main(int argc, char* argv[]) {
 		}
 */
 		td = parseTweet(line, "la");
-		td->number = numberOfTweets;
+		//td->number = numberOfTweets;
 
 		//int count;
 		//unsigned long long int test2222 = getSmallestUnicode(td->line, 0, &count);
 		//td->smallestUniCode = test2222;
 		//printf("%llu", test2222);
 
-		allocated += td->size;
+		//allocated += td->size;
 //		if (numberOfTweets % 1000 == 0) {
 //			printf("%li: %s - Hashtags: %d, Smileys: %d, Keywords %d\n",
 //					numberOfTweets, line, td->hashtags, td->smiles,
@@ -122,20 +118,34 @@ int main(int argc, char* argv[]) {
 		test[numberOfTweets] = *td;
 		numberOfTweets++;
 
+		/*if (numberOfTweets % 10000 == 0)
+		{
+			printf("%ld\n", numberOfTweets);
+			fflush(stdout);
+		}
+*/
 		//if (numberOfTweets == 1000)
 		//	break;
 	}
 	
 	fclose(fp);
 
+	//sleep(60);
 	// Calc time
-	struct timeval time2;
 	gettimeofday(&time2, NULL);
-	long microsec2 = ((unsigned long long) time2.tv_sec * 1000000)
-			+ time2.tv_usec;
-	time_t t2 = time(NULL);
-	printf("numbers written: %ld", numberOfTweets);
-	float timeToSort = quickSort(test, numberOfTweets);
+	microsec2 = ((unsigned long long) time2.tv_sec * 1000000) + time2.tv_usec;
+	timeToReadAndInit = (microsec2 - microsec1) / 1000000;
+
+	//printf("numbers written: %ld", numberOfTweets);
+
+	gettimeofday(&time1, NULL);
+	microsec1 = ((unsigned long long) time1.tv_sec * 1000000) + time1.tv_usec;
+
+	quickSort(test, numberOfTweets);
+
+	gettimeofday(&time2, NULL);
+	microsec2 = ((unsigned long long) time2.tv_sec * 1000000) + time2.tv_usec;
+	timeToSort = (microsec2 - microsec1) / 1000000;
 
 //	// Unicode sorting
 //	struct tweetData *sortedTweets = (struct tweetData*) malloc(
@@ -157,8 +167,10 @@ int main(int argc, char* argv[]) {
 //		}
 //	}
 
+	gettimeofday(&time1, NULL);
+	microsec1 = ((unsigned long long) time1.tv_sec * 1000000) + time1.tv_usec;
 	
-	FILE *f = fopen("out3.txt", "w");
+	FILE *f = fopen("out4.txt", "w");
 	if (f == NULL)
 	{
 	    printf("Error opening file!\n");
@@ -180,11 +192,20 @@ int main(int argc, char* argv[]) {
 			//	break;
 		}
 	}
-
 	fclose(f);
 
-	printf("einlesen diff: %ld msec\n", (long) (microsec2 - microsec1) / 1000);
-	printf("sortieren %8.4f\n", timeToSort);
+	gettimeofday(&time2, NULL);
+	microsec2 = ((unsigned long long) time2.tv_sec * 1000000) + time2.tv_usec;
+	timeToWrite = (microsec2 - microsec1) / 1000000;
+
+	timeForAll = timeToReadAndInit + timeToSort + timeToWrite;
+	printf("Read & Init:\t%llu Sec.\n", timeToReadAndInit);
+	printf("Sort:\t\t%llu Sec.\n", timeToSort);
+	printf("Write:\t\t%llu Sec.\n", timeToWrite);
+	printf("All:\t\t%llu Sec.\n", timeForAll);
+
+	//printf("einlesen diff: %ld msec\n", (long) (microsec2 - microsec1) / 1000);
+	//printf("sortieren %8.4f\n", timeToSort);
 
 	//	MPI_Finalize();
 	return 0;

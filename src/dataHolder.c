@@ -20,9 +20,9 @@ void resetTweetData(tweetData_t *td) {
 	td->smiles = 0;
 	td->smallestUniCode = ULLONG_MAX;
 	td->countSmallest = 0;
-	td->number = 0;
-	td->reRoundSmallest = ULLONG_MAX;
-	td->reRoundCountSmallest = 0;
+	//td->number = 0;
+	//td->reRoundSmallest = ULLONG_MAX;
+	//td->reRoundCountSmallest = 0;
 }
 
 unsigned char next(unsigned char *tweet) {
@@ -59,7 +59,7 @@ tweetData_t* parseTweet(unsigned char* tweetString, char* keyWord) {
 	resetTweetData(thisData);
 	thisData->line = tweetString;
 	// TODO: CAST!
-	thisData->size = sizeof(struct tweetData) + (sizeof(unsigned char) * ((unsigned long)(sizeof(tweetString) / sizeof(unsigned char))) + 1);
+	//thisData->size = sizeof(struct tweetData) + (sizeof(unsigned char) * ((unsigned long)(sizeof(tweetString) / sizeof(unsigned char))) + 1);
 
 	while ((actChar = ((int)*tweetString)) != (int)'\0') {
 

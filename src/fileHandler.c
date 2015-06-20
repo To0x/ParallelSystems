@@ -12,7 +12,7 @@
 #include <wchar.h>
 #include <inttypes.h>
 
-#define BYTE_ALLOCATION 4096;
+#define BYTE_ALLOCATION 512;
 
 unsigned char *readLine(FILE *file) {
 

@@ -10,16 +10,16 @@
 
 typedef struct tweetData {
 
-	int number;
+	//int number;
 	unsigned char *line;
 	unsigned char keywords;
 	unsigned char smiles;
 	unsigned char hashtags;
 	unsigned long long int smallestUniCode;
 	int countSmallest;
-	unsigned long size;
-	unsigned long long int reRoundSmallest;
-	int reRoundCountSmallest;
+	//unsigned long size;
+	//unsigned long long int reRoundSmallest;
+	//int reRoundCountSmallest;
 
 	//struct tweetData *next;
 } tweetData_t;
