@@ -30,3 +30,9 @@
 
 # Debug files
 *.dSYM/
+
+#custom added git ignore
+.idea*
+Debug/*
+*2097152tweets.*
+

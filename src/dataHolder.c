@@ -12,17 +12,12 @@
 #include "dataHolder.h"
 #include <limits.h>
 
-//#define PARSE(__x__, __y__) y=((unsigned char)*(++__x__);)
-
 void resetTweetData(tweetData_t *td) {
 	td->hashtags = 0;
 	td->keywords = 0;
 	td->smiles = 0;
 	td->smallestUniCode = ULLONG_MAX;
 	td->countSmallest = 0;
-	//td->number = 0;
-	//td->reRoundSmallest = ULLONG_MAX;
-	//td->reRoundCountSmallest = 0;
 }
 
 unsigned char next(unsigned char *tweet) {
@@ -50,9 +45,7 @@ bool isKeyWord(unsigned char* tweetString, char* keyword) {
 }
 
 tweetData_t* parseTweet(unsigned char* tweetString, char* keyWord) {
-
 	int actChar;
-	int actCharByteLenght;
 
 	tweetData_t *thisData;
 	thisData = malloc(sizeof(tweetData_t));
@@ -64,27 +57,19 @@ tweetData_t* parseTweet(unsigned char* tweetString, char* keyWord) {
 	while ((actChar = ((int)*tweetString)) != (int)'\0') {
 
 		if (actChar < 128) { // 0xxx xxxx --> befindet sich im ASCII bereich
-			actCharByteLenght = 1;
-
-			//printf("Act: %c\n", actChar);
 
 			if (isKeyWord(tweetString, keyWord)) {
 				thisData->keywords++;
-				//printf("KeyWord++\n");
 			}
 
 			// A hashtag followed by whitespace is no hashtag in our meaning.
 			if (actChar == '#' && (unsigned char) *(1 + tweetString) != ' ')
 				thisData->hashtags++;
 		} else if (actChar < 224) { // 110x xxxx --> UTF8 Encoding beginnt 2Byte
-			actCharByteLenght = 2;
 			tweetString++;
 		} else if (actChar < 240) { // 1110 xxxx --> 3 Byte
-			actCharByteLenght = 3;
 			tweetString += 2;
-		} else {
-			actCharByteLenght = 4; // 1111 0xxx --> 4 Byte
-
+		} else {// 1111 0xxx --> 4 Byte
 			// count Smileys
 			if (actChar == 240) {
 				actChar = (unsigned char) *(++tweetString); // next(tweetString);
@@ -108,10 +93,8 @@ tweetData_t* parseTweet(unsigned char* tweetString, char* keyWord) {
 				tweetString += 4 - 1;
 			}
 		}
-
 		tweetString++;
 	}
-
 	return thisData;
 }
 

@@ -7,9 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <locale.h>
-#include <wchar.h>
 #include <inttypes.h>
 
 #define BYTE_ALLOCATION 512;
@@ -35,7 +33,7 @@ unsigned char *readLine(FILE *file) {
     while ((ch != (int)'\n') && (ch != (int)EOF)) {
         if (count == maximumLineLength) {
             maximumLineLength += BYTE_ALLOCATION;
-            if ((lineBuffer = realloc(lineBuffer, maximumLineLength)) == NULL) {
+            if ((lineBuffer = realloc(lineBuffer, maximumLineLength)) == NULL) { // TODO: Parameter type mismatch: Using 'size_t' for signed values of type 'int'
                 printf("Error reallocating space for line buffer.");
                 exit(1);
             }
@@ -49,20 +47,11 @@ unsigned char *readLine(FILE *file) {
         {
         	fprintf(stderr,"Reached EOF!\n");
         	lineBuffer[count] = '\0';
-
-        	//char actChar;
-        	/*while ((actChar = *lineBuffer) != '\0') {
-        		printf("%c: %d\n", actChar, (int)actChar);
-        		lineBuffer++;
-        	}
-
-        	printf("%s", lineBuffer);
-        	*/
         	break;
         }
     }
 
     lineBuffer[count] = '\0';
     //realloc(lineBuffer, count+1);
-    return lineBuffer;
+    return lineBuffer;  // TODO: Returning 'char*' from a function returning 'unsigned char*': Incompatible pointer types 'unsigned char*' and 'char*'
 }
