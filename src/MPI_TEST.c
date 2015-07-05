@@ -18,6 +18,9 @@
 
 #define NUMBEROFTWEETS 2100000
 
+char *const OUTPUT_FILE_PATH = "out4.txt";
+char* FILE_PATH = "./65536tweets.0";
+char* KEYWORD = "la";
 
 int main(int argc, char* argv[]) {
 //	int my_rank; /* rank of process */
@@ -34,7 +37,7 @@ int main(int argc, char* argv[]) {
 	//MPI_Comm_size(MPI_COMM_WORLD, &p);
 
 	// Show keyword
-	printf("Tweets will be sorted by keyword 'la'.\n");
+	printf("Tweets will be sorted by keyword '%s'.\n",KEYWORD);
 
 	struct timeval time1, time2;
 	unsigned long long timeToReadAndInit = 0l, timeToSort = 0l, timeToWrite = 0l, timeForAll = 0l,
@@ -42,9 +45,10 @@ int main(int argc, char* argv[]) {
 
 	// File Initializations
 	FILE *fp;
-	fp = fopen("./2097152tweets.0", "rb+, ccs=UTF-8");
+	fp = fopen(FILE_PATH, "rb+, ccs=UTF-8");
 	if (fp == NULL) {
-		printf("file not accessible!\n");
+        fprintf(stderr,"file not accessible!\n");
+        exit(EXIT_FAILURE);
 	}
 
 	//	if (my_rank == 0) {
@@ -61,7 +65,6 @@ int main(int argc, char* argv[]) {
 	tweetData_t *test = (tweetData_t*) malloc(sizeof(tweetData_t) * (NUMBEROFTWEETS+1));
 	fflush (stdout);
 
-	time_t t1 = time(NULL); // TODO t1 is never accessed! Verify it!
 	long numberOfTweets = 0;
 
 	gettimeofday(&time1, NULL);
@@ -70,7 +73,7 @@ int main(int argc, char* argv[]) {
 	while (!feof(fp)) {
 		unsigned char *line = readLine(fp);
 
-		td = parseTweet(line, "la");
+		td = parseTweet(line, KEYWORD);
 
 		test[numberOfTweets] = *td;
 		numberOfTweets++;
@@ -96,7 +99,7 @@ int main(int argc, char* argv[]) {
 	gettimeofday(&time1, NULL);
 	microsec1 = ((unsigned long long) time1.tv_sec * 1000000) + time1.tv_usec;
 	
-	FILE *f = fopen("out4.txt", "w");
+	FILE *f = fopen(OUTPUT_FILE_PATH, "w");
 	if (f == NULL)
 	{
 	    printf("Error opening file!\n");
