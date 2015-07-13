@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
 	}
 
 
-	//quickSort(test, numberOfTweets);
+	bucketSort(test, numberOfTweets, sizeof(tweetData_t));
 	gettimeofday(&time2, NULL);
 	microsec2 = ((unsigned long long) time2.tv_sec * 1000000) + time2.tv_usec;
 	timeToSort = (microsec2 - microsec1) / 1000000;
