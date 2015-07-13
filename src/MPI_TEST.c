@@ -89,8 +89,15 @@ int main(int argc, char* argv[]) {
 	gettimeofday(&time1, NULL);
 	microsec1 = ((unsigned long long) time1.tv_sec * 1000000) + time1.tv_usec;
 
-	quickSort(test, numberOfTweets);
+	//tweetData_t *pivotSet = (tweetData_t *) malloc(8 * sizeof(tweetData_t));
+	tweetData_t* tom = getPivotElements(test, 8);
+	for (int i = 0; i < 8; i++)
+	{	
+		printf("keyword:%d \t unicode: %llu \t count: %d\n",tom[i].keywords, tom[i].smallestUniCode, tom[i].countSmallest );
+	}
 
+
+	//quickSort(test, numberOfTweets);
 	gettimeofday(&time2, NULL);
 	microsec2 = ((unsigned long long) time2.tv_sec * 1000000) + time2.tv_usec;
 	timeToSort = (microsec2 - microsec1) / 1000000;

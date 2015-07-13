@@ -12,10 +12,51 @@
 #include <stdlib.h>
 
 #define NUMBER_OF_BUCKETS 12
+#define PIVOT_SET_SIZE 1000
+#define DEBUG 1
 
 int getBiggestKeywordCount(tweetData_t *toSort, size_t len);
+int compare(const void *c1, const void *c2);
 
-void bucketSort(tweetData_t *toSort, size_t len, size_t tweetSize, int (*compare)(const void *, const void *)) {
+tweetData_t* getPivotElements(tweetData_t *toSort, int buckets){
+    tweetData_t *pivotSet = (tweetData_t *) malloc(PIVOT_SET_SIZE * sizeof(tweetData_t));
+    for(int i = 0; i < PIVOT_SET_SIZE; i++){
+        pivotSet[i] = toSort[i];
+    }
+    qsort(pivotSet, PIVOT_SET_SIZE, sizeof(tweetData_t), compare);
+
+    int pivot = PIVOT_SET_SIZE/buckets-1;
+    int pivotDelta = pivot;
+    tweetData_t* pivotElements = (tweetData_t *) malloc(buckets * sizeof(tweetData_t));
+    for (int i = 0; i < buckets-1; i++)
+    {
+        pivotElements[i] = pivotSet[pivot];
+        pivot += pivotDelta;
+        printf("pivot: %d\n",pivot );
+    }
+
+FILE *f = fopen("./tom.txt", "w");
+    if (f == NULL)
+    {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+
+    /* print some text */
+    for (int j = 0; j <= 1000; j++) {
+        if (pivotSet[j].line != NULL) {
+            if (!DEBUG)
+                fprintf(f, "%s\n", pivotSet[j].line);
+            else
+                fprintf(f, "%s [KW: %d, SUNI: %llu, UNIC: %d]\n", pivotSet[j].line, pivotSet[j].keywords, pivotSet[j].smallestUniCode, pivotSet[j].countSmallest );
+        }
+    }
+    fclose(f);
+
+    return pivotElements;
+}
+
+void bucketSort(tweetData_t *toSort, size_t len, size_t tweetSize) {
     /*
         Bucketsort:
 
@@ -34,74 +75,29 @@ void bucketSort(tweetData_t *toSort, size_t len, size_t tweetSize, int (*compare
         of radix sort; in particular, the case n = 2 corresponds to quicksort (although potentially with poor pivot choices).
 
         Scource: https://en.wikipedia.org/wiki/Bucket_sort
-     */
+     */    
 
-    printf("In bucketSort:\n");
-    printf("\tlen -> %ld\n", len);
-    printf("\ttweetSize -> %zd\n", tweetSize);
+    tweetData_t* t = (tweetData_t *) malloc(len * sizeof(tweetData_t));
+    printf("Created bucket.\n");
 
-    int biggestKeywordCount = getBiggestKeywordCount(toSort, len) + 1;
-    printf("\tbiggesKeywordCount -> %d\n", biggestKeywordCount);
-
-    int bucketSize[biggestKeywordCount];
-    int bucketCurrentSize[biggestKeywordCount];
-
-    // initialize bucket size and current bucket index
-    for (int k = 0; k < biggestKeywordCount; ++k) {
-        bucketSize[k] = 0;
-        bucketCurrentSize[k] = 0;
-    }
-    printf("Inialized bucketSize and bucketCurrentSize.\n");
-
-    for (int i = 0; i < len; ++i) {
-        bucketSize[toSort[i].keywords] += 1;
-    }
-    printf("Caluculated bucket sizes.\n");
-
-    // Print bucket sizes
-    for (int j = 0; j < biggestKeywordCount; ++j) {
-        printf("bucketSize[%d] --> %d\n", j, bucketSize[j]);
-    }
-
-    tweetData_t **t = (tweetData_t **) malloc(biggestKeywordCount * sizeof(tweetData_t *));
-    for (int k = 0; k < biggestKeywordCount; ++k) {
-        t[k] = (tweetData_t *) malloc(bucketSize[k] * sizeof(tweetData_t));
-    }
-    printf("Created buckets.\n");
-
-    for (int l = 0; l < len; ++l) {
-        t[toSort[l].keywords][bucketCurrentSize[toSort[l].keywords]++] = toSort[l];
+    long currentPosition = 0;
+    for (long l = 0; l < len; l++){
+        if(0){// TODO: Check if in range!! 
+            t[currentPosition++] = toSort[l];  
+        } else {
+            fprintf(stderr,"No range compare implemented yet\n");
+            exit(EXIT_FAILURE);
+        } 
     }
     printf("Filled Buckets.\n");
 
 
-    for (int j = 0; j < biggestKeywordCount; ++j) {
-        qsort(t[j], (size_t) bucketSize[j], sizeof(tweetData_t), compare);
-    }
+    qsort(t, (size_t) currentPosition-1, sizeof(tweetData_t), compare);
     printf("Buckets sorted.\n");
 
-
-    // Print last element of each bucket.
-    for (int n = biggestKeywordCount; n >= 0; --n) {
-        for (long m = bucketSize[n]; m > 0; --m) {
-//            if (m == bucketSize[n] ) {
-            if (n == 0 && m > 54400) {
-//                printf("t[%d][%ld] keywords %d\n", n, m, t[n][m - 1].keywords);
-                printf("t[%d][%ld] --> %s\n", n, m, t[n][m - 1].line);
-            }
-        }
-    }
-
-    int toSortIndex = 0;
-    for (int m = biggestKeywordCount-1; m >= 0 ; m--) {
-        for (int i = 0; i < bucketCurrentSize[m]; ++i) {
-            toSort[toSortIndex++] = t[m][i];
-        }
-    }
-    printf("Result copyed to toSort.\n");
-
+    // Debug... 
     for (long i1 = (long) len  ; i1 > 65500; i1--) {
-        printf("toSort[%ld] --> %s\n" , i1,toSort[i1].line);
+        printf("t[%ld] --> %s\n" , i1,t[i1].line);
     }
 
 }
@@ -269,7 +265,7 @@ float quickSort(struct tweetData *toSort, long len) {
 
     printf("len in quicksort: %ld", len);
     fflush(stdout);
-    bucketSort(toSort, len, sizeof(tweetData_t), compare);
+    bucketSort(toSort, len, sizeof(tweetData_t));
 //    qsort(toSort, len, sizeof(tweetData_t), compare);
     return 0.0;
 }
