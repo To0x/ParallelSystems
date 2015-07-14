@@ -10,7 +10,7 @@
 #include <limits.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <bool.h>
+#include <stdbool.h>
 
 #define NUMBER_OF_BUCKETS 12
 #define PIVOT_SET_SIZE 1000
@@ -19,7 +19,7 @@
 int getBiggestKeywordCount(tweetData_t *toSort, size_t len);
 int compare(const void *c1, const void *c2);
 
-tweetData_t* getPivotElements(tweetData_t *toSort, int buckets){
+tweetData_t *getPivotElements(tweetData_t *toSort, int buckets){
     tweetData_t *pivotSet = (tweetData_t *) malloc(PIVOT_SET_SIZE * sizeof(tweetData_t));
     for(int i = 0; i < PIVOT_SET_SIZE; i++){
         pivotSet[i] = toSort[i];
@@ -29,30 +29,12 @@ tweetData_t* getPivotElements(tweetData_t *toSort, int buckets){
     int pivot = PIVOT_SET_SIZE/buckets-1;
     int pivotDelta = pivot;
     tweetData_t* pivotElements = (tweetData_t *) malloc(buckets * sizeof(tweetData_t));
-    for (int i = 0; i < buckets-2; i++)
+    for (int i = 0; i < buckets-1; i++)
     {
+        printf("pivot: %d\n",pivot );
         pivotElements[i] = pivotSet[pivot];
         pivot += pivotDelta;
-        printf("pivot: %d\n",pivot );
     }
-
-/*
-FILE *f = fopen("./tom.txt", "w");
-    if (f == NULL)
-    {
-        printf("Error opening file!\n");
-        exit(1);
-    }
-
-    for (int j = 0; j <= 1000; j++) {
-        if (pivotSet[j].line != NULL) {
-            if (!DEBUG)
-                fprintf(f, "%s\n", pivotSet[j].line);
-            else
-                fprintf(f, "%s [KW: %d, SUNI: %llu, UNIC: %d]\n", pivotSet[j].line, pivotSet[j].keywords, pivotSet[j].smallestUniCode, pivotSet[j].countSmallest );
-        }
-    }
-    fclose(f);*/
 
     return pivotElements;
 }
@@ -61,15 +43,15 @@ FILE *f = fopen("./tom.txt", "w");
 // return -1 if tw2 > tw1
 // return 0 if equals
 
-int compareTweet(tweetData *tw1, TweetData *tw2) {
+int compareTweet(tweetData_t *tw1, tweetData_t *tw2) {
     if (tw1->keywords > tw2->keywords)
         return 1;
     else if (tw2->keywords > tw1->keywords)
         return -1;
     else {
-        if (tw1->smallestUni < tw2->smallestUni)
+        if (tw1->smallestUniCode < tw2->smallestUniCode)
             return 1;
-        else if (tw2->smallestUni < tw1->smallestUni)
+        else if (tw2->smallestUniCode < tw1->smallestUniCode)
             return -1;
         else {
             if (tw1->countSmallest > tw2->countSmallest)
@@ -84,25 +66,39 @@ int compareTweet(tweetData *tw1, TweetData *tw2) {
 
 bool inRange(tweetData_t *toSort,tweetData_t *bucketRanges,int ownBucket){
     
-    int bucketLength = sizeof(*bucketRanges) / sizeof(tweetData_t)) // TODO: prüfen, sollte bei 8 knoten = 7 sein!
+	//if (DEBUG)
+	//	printf("sizeof(bucketRanges): %d, sizeof(tweetData_t): %d, size: %d", sizeof(*bucketRanges), sizeof(tweetData_t), sizeof(*bucketRanges) / sizeof(tweetData_t));
+
+    int bucketLength = sizeof(*bucketRanges) / sizeof(tweetData_t); // TODO: prüfen, sollte bei 8 knoten = 7 sein!
     if (ownBucket == 0) {
 
-        if (compareTweet(toSort, bucketRanges[0]) == -1) { // toSort < bucketRanges[0]
+        if (compareTweet(toSort, &bucketRanges[0]) == -1) { // toSort < bucketRanges[0]
             return true;
         }  
         return false;
 
     } else if (ownBucket == bucketLength+1) { // if ownBucket == 8?
-        if (compareTweet(toSort, bucketRanges[bucketLength]) == 1) { // toSort > bucketRanges[7]
+        if (compareTweet(toSort, &bucketRanges[bucketLength]) == 1) { // toSort > bucketRanges[7]
             return true;
         }
         return false;
     } else {
-        if (compareTweet(toSort, bucketRanges[ownBucket-1]) == 1 && compareTweet(toSort, bucketRanges[ownBucket]) == -1){ // größer als Vorgänger, kleiner als der eigenen
+        if (compareTweet(toSort, &bucketRanges[ownBucket-1]) == 1 && compareTweet(toSort, &bucketRanges[ownBucket]) == -1){ // größer als Vorgänger, kleiner als der eigenen
             return true;
         }
         return false;
     }
+}
+
+void printPivotElements(tweetData_t *elements) {
+
+	if (!DEBUG)
+		return;
+
+	for (int i = 0 ; i < 8 ; i++) {
+		printf("keyword:%d \t unicode: %llu \t count: %d\n",elements[i].keywords, elements[i].smallestUniCode, elements[i].countSmallest );
+	}
+
 }
 
 void bucketSort(tweetData_t *toSort, size_t len, size_t tweetSize, int buckets, int ownBucket) {
@@ -126,14 +122,15 @@ void bucketSort(tweetData_t *toSort, size_t len, size_t tweetSize, int buckets, 
         Scource: https://en.wikipedia.org/wiki/Bucket_sort
      */    
 
-       tweetData_t *bucketRanges = getPivotElements(*toSort, buckets)
+    tweetData_t *bucketRanges = getPivotElements(toSort, buckets);
+   	printPivotElements(bucketRanges);
 
-    tweetData_t* t = (tweetData_t *) malloc(len * sizeof(tweetData_t));
-    printf("Created bucket.\n");
+    tweetData_t *t = (tweetData_t *) malloc(len * sizeof(tweetData_t));
 
     long currentPosition = 0;
     for (long l = 0; l < len; l++){
-        if(inRange(toSort[l], bucketRanges, ownBucket)){// TODO: Check if in range!! 
+
+    	if(inRange(&toSort[l], bucketRanges, ownBucket)){ // TODO: Check if in range!!
             t[currentPosition++] = toSort[l];  
         } else {
             fprintf(stderr,"No range compare implemented yet\n");

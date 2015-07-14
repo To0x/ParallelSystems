@@ -1,6 +1,6 @@
 /*
  ============================================================================
- Name        : MPI_TEST.c
+Name        : MPI_TEST.c
  Author      : TomSchubert
  Version     :
  Copyright   : 
@@ -13,6 +13,7 @@
 #include "dataHolder.h"
 #include "fileHandler.h"
 #include "bucketSort.h"
+#include "mpi.h"
 #include <time.h>
 #include <sys/time.h>
 
@@ -23,8 +24,8 @@ char* FILE_PATH = "./65536tweets.0";
 char* KEYWORD = "la";
 
 int main(int argc, char* argv[]) {
-//	int my_rank; /* rank of process */
-	//	int p; /* number of processes */
+	int my_rank; /* rank of process */
+	int world_rank; /* number of processes */
 	//int source; /* rank of sender */
 	//int dest; /* rank of receiver */
 	//int tag = 0; /* tag for messages */
@@ -32,9 +33,12 @@ int main(int argc, char* argv[]) {
 	//MPI_Status status; /* return status for receive */
 
 	// MPI Initializations
-	//MPI_Init(&argc, &argv);
-	//MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-	//MPI_Comm_size(MPI_COMM_WORLD, &p);
+	MPI_Init(&argc, &argv);
+	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &world_rank);
+
+	if (argc >= 1)
+		KEYWORD = argv[1];
 
 	// Show keyword
 	printf("Tweets will be sorted by keyword '%s'.\n",KEYWORD);
@@ -92,12 +96,12 @@ int main(int argc, char* argv[]) {
 	//tweetData_t *pivotSet = (tweetData_t *) malloc(8 * sizeof(tweetData_t));
 	tweetData_t* tom = getPivotElements(test, 8);
 	for (int i = 0; i < 8; i++)
-	{	
+	{
 		printf("keyword:%d \t unicode: %llu \t count: %d\n",tom[i].keywords, tom[i].smallestUniCode, tom[i].countSmallest );
 	}
 
 
-	bucketSort(test, numberOfTweets, sizeof(tweetData_t));
+	bucketSort(test, numberOfTweets, sizeof(tweetData_t), 8);
 	gettimeofday(&time2, NULL);
 	microsec2 = ((unsigned long long) time2.tv_sec * 1000000) + time2.tv_usec;
 	timeToSort = (microsec2 - microsec1) / 1000000;
