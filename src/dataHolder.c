@@ -13,9 +13,8 @@
 #include <limits.h>
 
 void resetTweetData(tweetData_t *td) {
-	td->hashtags = 0;
 	td->keywords = 0;
-	td->smiles = 0;
+	td->index = ULLONG_MAX;
 	td->smallestUniCode = ULLONG_MAX;
 	td->countSmallest = 0;
 }
@@ -61,10 +60,6 @@ tweetData_t* parseTweet(unsigned char* tweetString, char* keyWord) {
 			if (isKeyWord(tweetString, keyWord)) {
 				thisData->keywords++;
 			}
-
-			// A hashtag followed by whitespace is no hashtag in our meaning.
-			if (actChar == '#' && (unsigned char) *(1 + tweetString) != ' ')
-				thisData->hashtags++;
 		} else if (actChar < 224) { // 110x xxxx --> UTF8 Encoding beginnt 2Byte
 			tweetString++;
 		} else if (actChar < 240) { // 1110 xxxx --> 3 Byte
@@ -77,12 +72,12 @@ tweetData_t* parseTweet(unsigned char* tweetString, char* keyWord) {
 					actChar = (unsigned char) *(++tweetString); // next(tweetString);
 					if (actChar == 152) {
 						actChar = (unsigned char) *(++tweetString); // next(tweetString);
-						if (actChar >= 129)
-							thisData->smiles++;
+//						if (actChar >= 129)
+//							thisData->smiles++;
 					} else if (actChar == 153) {
 						actChar = (unsigned char) *(++tweetString); // next(tweetString);
-						if (actChar <= 143)
-							thisData->smiles++;
+//						if (actChar <= 143)
+//							thisData->smiles++;
 					} else {
 						tweetString += 4 - 3;
 					}

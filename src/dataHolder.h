@@ -12,8 +12,7 @@ typedef struct tweetData {
 
 	unsigned char *line;
 	unsigned char keywords;
-	unsigned char smiles;
-	unsigned char hashtags;
+	unsigned long index;
 	unsigned long long int smallestUniCode;
 	int countSmallest;
     int bucketNr;

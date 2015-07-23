@@ -13,32 +13,39 @@ Name        : MPI_TEST.c
 #include "dataHolder.h"
 #include "fileHandler.h"
 #include "bucketSort.h"
-#include "mpi.h"
+#include <limits.h>
+//#include <mpi.h>
 #include <time.h>
 #include <sys/time.h>
 
 #define NUMBEROFTWEETS 2100000
+#define NUMBER_OF_BUCKETS 8
+#define NUMBER_OF_NODES 1
 
-char *const OUTPUT_FILE_PATH = "out4.txt";
-char* FILE_PATH = "./65536tweets.0";
+char *const OUTPUT_FILE_PATH = "out3.txt";
+char* FILE_PATH = "./2097152tweets.0";
 char* KEYWORD = "la";
 
+unsigned long getIntervalDelta(unsigned long numberOfTweets, unsigned long nodes){
+    return numberOfTweets/nodes;
+}
+
 int main(int argc, char* argv[]) {
-	int my_rank; /* rank of process */
-	int world_rank; /* number of processes */
-	//int source; /* rank of sender */
-	//int dest; /* rank of receiver */
-	//int tag = 0; /* tag for messages */
-	//char message[100]; /* storage for message */
-	//MPI_Status status; /* return status for receive */
+//	int my_rank; /* rank of process */
+//	int world_rank; /* number of processes */
+//	//int source; /* rank of sender */
+//	//int dest; /* rank of receiver */
+//	//int tag = 0; /* tag for messages */
+//	//char message[100]; /* storage for message */
+//	//MPI_Status status; /* return status for receive */
+//
+//	// MPI Initializations
+//	MPI_Init(&argc, &argv);
+//	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+//	MPI_Comm_size(MPI_COMM_WORLD, &world_rank);
 
-	// MPI Initializations
-	MPI_Init(&argc, &argv);
-	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &world_rank);
-
-	if (argc >= 1)
-		KEYWORD = argv[1];
+//	if (argc >= 1)
+//		KEYWORD = argv[1];
 
 	// Show keyword
 	printf("Tweets will be sorted by keyword '%s'.\n",KEYWORD);
@@ -69,16 +76,16 @@ int main(int argc, char* argv[]) {
 	tweetData_t *test = (tweetData_t*) malloc(sizeof(tweetData_t) * (NUMBEROFTWEETS+1));
 	fflush (stdout);
 
-	long numberOfTweets = 0;
+	unsigned long numberOfTweets = 0;
 
 	gettimeofday(&time1, NULL);
 	microsec1 = ((unsigned long long) time1.tv_sec * 1000000) + time1.tv_usec;
-
+    unsigned long index = 0;
 	while (!feof(fp)) {
 		unsigned char *line = readLine(fp);
 
 		td = parseTweet(line, KEYWORD);
-
+        td->index = index++;
 		test[numberOfTweets] = *td;
 		numberOfTweets++;
 	}
@@ -94,14 +101,14 @@ int main(int argc, char* argv[]) {
 	microsec1 = ((unsigned long long) time1.tv_sec * 1000000) + time1.tv_usec;
 
 	//tweetData_t *pivotSet = (tweetData_t *) malloc(8 * sizeof(tweetData_t));
-	tweetData_t* tom = getPivotElements(test, 8);
-	for (int i = 0; i < 8; i++)
-	{
-		printf("keyword:%d \t unicode: %llu \t count: %d\n",tom[i].keywords, tom[i].smallestUniCode, tom[i].countSmallest );
-	}
 
+    unsigned long delta = getIntervalDelta(numberOfTweets, NUMBER_OF_NODES);
 
-	bucketSort(test, numberOfTweets, sizeof(tweetData_t), 8);
+    //start:(delta * rank) - delta      ende:delta * rank
+    int rank = 1;
+    unsigned long **indexes = 0;
+    indexes = (unsigned long **) bucketSort(test, (size_t) numberOfTweets, NUMBER_OF_BUCKETS,(delta * rank) - delta,delta * rank);
+
 	gettimeofday(&time2, NULL);
 	microsec2 = ((unsigned long long) time2.tv_sec * 1000000) + time2.tv_usec;
 	timeToSort = (microsec2 - microsec1) / 1000000;
@@ -118,11 +125,22 @@ int main(int argc, char* argv[]) {
 	}
 
 	/* print some text */
-	for (int j = 0; j <= numberOfTweets; j++) {
-		if (test[j].line != NULL) {
-			fprintf(f, "%s\n", test[j].line);
-		}
-	}
+    for (int i = 0; i < NUMBER_OF_BUCKETS; ++i) {
+        unsigned long j = 0;
+        while(indexes[i][j] != ULLONG_MAX) {
+//            if (test[j].line != NULL) {
+                fprintf(f, "%s\n", test[indexes[i][j]].line);
+//            }
+           j++;
+        }
+    }
+
+//	/* print some text */
+//	for (int j = 0; j <= numberOfTweets; j++) {
+//		if (test[j].line != NULL) {
+//			fprintf(f, "%s\n", test[j].line);
+//		}
+//	}
 	fclose(f);
 
 	gettimeofday(&time2, NULL);
