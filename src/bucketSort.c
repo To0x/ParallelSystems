@@ -182,7 +182,7 @@ unsigned long** bucketSort(tweetData_t *toSort, size_t len, int buckets , unsign
 
 
 
-    for (int j = 0; j < len; j++) {
+    for (unsigned long j = startIndex; j < endIndex; j++) {
 //        printf("toSort[%d]: %llu\n",j,toSort[j].smallestUniCode);
         int uniCount1 = 0 , noMoreResults1 = 0;
         toSort[j].smallestUniCode = getSmallestUnicode(toSort[j].line,0,&uniCount1, &noMoreResults1);
