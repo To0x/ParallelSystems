@@ -18,12 +18,22 @@ Name        : MPI_TEST.c
 #include <time.h>
 #include <sys/time.h>
 
-#define NUMBEROFTWEETS 2100000
+#define NUMBEROFTWEETS 21000000
 #define NUMBER_OF_BUCKETS 8
 #define NUMBER_OF_NODES 1
 
 char *const OUTPUT_FILE_PATH = "../Debug/out3.txt";
-char* FILE_PATH = "../Debug/2097152tweets.0";
+//char* FILE_PATH = "/usr/local/ss15psys/2097152tweets.0";
+char FILE_PATH[8][255] = {
+		"/usr/local/ss15psys/2097152tweets.0",
+		"/usr/local/ss15psys/2097152tweets.1",
+		"/usr/local/ss15psys/2097152tweets.2",
+		"/usr/local/ss15psys/2097152tweets.3",
+		"/usr/local/ss15psys/2097152tweets.4",
+		"/usr/local/ss15psys/2097152tweets.5",
+		"/usr/local/ss15psys/2097152tweets.6",
+		"/usr/local/ss15psys/2097152tweets.7"
+	};
 char* KEYWORD = "la";
 
 unsigned long getIntervalDelta(unsigned long numberOfTweets, int nodes){
@@ -54,13 +64,7 @@ int main(int argc, char* argv[]) {
 	unsigned long long timeToReadAndInit = 0l, timeToSort = 0l, timeToWrite = 0l, timeForAll = 0l,
 			microsec1, microsec2;
 
-	// File Initializations
-	FILE *fp;
-	fp = fopen(FILE_PATH, "rb+, ccs=UTF-8");
-	if (fp == NULL) {
-        fprintf(stderr,"file not accessible!\n");
-        exit(EXIT_FAILURE);
-	}
+	
 
 	//	if (my_rank == 0) {
 	/* create message */
@@ -74,23 +78,31 @@ int main(int argc, char* argv[]) {
 			(sizeof(tweetData_t*) * NUMBEROFTWEETS) / 1000);
 
 	tweetData_t *test = (tweetData_t*) malloc(sizeof(tweetData_t) * (NUMBEROFTWEETS+1));
-
 	unsigned long numberOfTweets = 0;
+	// File Initializations
+	for(int i = 0; i < 8; i++){
+		FILE *fp;
+		fp = fopen(FILE_PATH[i], "rb, ccs=UTF-8");
+		if (fp == NULL) {
+	        fprintf(stderr,"file not accessible!\n");
+	        exit(EXIT_FAILURE);
+		}
 
-	gettimeofday(&time1, NULL);
-	microsec1 = ((unsigned long long) time1.tv_sec * 1000000) + time1.tv_usec;
-    unsigned long index = 0;
-	while (!feof(fp)) {
-		unsigned char *line = readLine(fp);
+		
 
-		td = parseTweet(line, KEYWORD);
-        td->index = index++;
-		test[numberOfTweets] = *td;
-		numberOfTweets++;
+		gettimeofday(&time1, NULL);
+		microsec1 = ((unsigned long long) time1.tv_sec * 1000000) + time1.tv_usec;
+	    unsigned long index = 0;
+		while (!feof(fp)) {
+			unsigned char *line = readLine(fp);
+
+			td = parseTweet(line, KEYWORD);
+	        td->index = index++;
+			test[numberOfTweets] = *td;
+			numberOfTweets++;
+		}
+		fclose(fp);
 	}
-	
-	fclose(fp);
-
 	// Calc time
 	gettimeofday(&time2, NULL);
 	microsec2 = ((unsigned long long) time2.tv_sec * 1000000) + time2.tv_usec;
