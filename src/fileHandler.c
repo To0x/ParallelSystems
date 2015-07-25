@@ -10,7 +10,7 @@
 #include <locale.h>
 #include <inttypes.h>
 
-#define BYTE_ALLOCATION 512;
+#define BYTE_ALLOCATION 128;
 
 unsigned char *readLine(FILE *file) {
 
@@ -30,7 +30,7 @@ unsigned char *readLine(FILE *file) {
     int ch = getc(file);
     int count = 0;
 
-    while ((ch != (int)'\n') && (ch != (int)EOF)) {
+    while ((ch != (int)'\n') && (ch != EOF)) {
         if (count == maximumLineLength) {
             maximumLineLength += BYTE_ALLOCATION;
             if ((lineBuffer = realloc(lineBuffer, maximumLineLength)) == NULL) { // TODO: Parameter type mismatch: Using 'size_t' for signed values of type 'int'

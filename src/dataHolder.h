@@ -15,7 +15,6 @@ typedef struct tweetData {
 	unsigned long index;
 	unsigned long long int smallestUniCode;
 	int countSmallest;
-    int bucketNr;
 } tweetData_t;
 
 enum QSORT_ANSWERS {
