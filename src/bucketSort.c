@@ -103,7 +103,7 @@ int calculateBucketToInsert(tweetData_t toSort, tweetData_t *bucketRanges, int b
 
 unsigned long** bucketSort(tweetData_t *toSort, size_t len, int buckets , unsigned long startIndex, unsigned long endIndex) {
     tweetData_t *bucketRanges = getPivotElements(toSort, buckets);
-    printPivotElements(bucketRanges, buckets);
+//    printPivotElements(bucketRanges, buckets);
 
 
     size_t *sizePerBucket = malloc(buckets * sizeof(size_t));
@@ -118,10 +118,7 @@ unsigned long** bucketSort(tweetData_t *toSort, size_t len, int buckets , unsign
         tweetIndex[k] = (unsigned long *) malloc(sizePerBucket[k] * sizeof(unsigned long));
     }
 
-
     printf("Created buckets.\n");
-
-
 
     for (unsigned long j = startIndex; j < endIndex; j++) {
         int uniCount1 = 0 , noMoreResults1 = 0;
@@ -136,22 +133,8 @@ unsigned long** bucketSort(tweetData_t *toSort, size_t len, int buckets , unsign
         }
     }
 
-//    for (int m = 0; m < buckets; ++m) {
-//        quickSort(t[m],currentPos[m]);
-//        t[m][currentPos[m]++].index = ULLONG_MAX;
-//    }
-
-
-//    for (int n = 0; n < buckets; n++) {
-//        for (unsigned long l = 0; l < currentPos[n]; l++) {
-//            tweetIndex[n][l] = t[n][l].index;
-//        }
-//    }
-    for (int m = 0; m < 8; ++m) {
-//        for (int l = 0; l < currentPos[m]; ++l) {
+    for (int m = 0; m < buckets; ++m) {
             tweetIndex[m][currentPos[m]] =  ULONG_MAX;
-            printf("Len --> %lu\n",currentPos[m]);
-//        }
     }
 
     return tweetIndex;
