@@ -21,15 +21,26 @@ Name        : MPI_TEST.c
 #define NUMBEROFTWEETS 17000000
 #define NUMBER_OF_BUCKETS 8
 #define NUMBER_OF_NODES 1
-#define NUMBER_OF_FILES 8
+#define NUMBER_OF_FILES 1
 
 #define SEND_LENGTH_OF_INDEXES_TAG 0
 #define SEND_INDEXES_TAG 1
 
-char *const OUTPUT_FILE_PATH = "../Debug/out3.txt";
+char *const OUTPUT_FILE_PATH = "../Debug/out";
 //char* FILE_PATH = "/usr/local/ss15psys/2097152tweets.0";
+//char FILE_PATH[8][255] = {
+//		"/usr/local/ss15psys/2097152tweets.0",
+//		"/usr/local/ss15psys/2097152tweets.1",
+//		"/usr/local/ss15psys/2097152tweets.2",
+//		"/usr/local/ss15psys/2097152tweets.3",
+//		"/usr/local/ss15psys/2097152tweets.4",
+//		"/usr/local/ss15psys/2097152tweets.5",
+//		"/usr/local/ss15psys/2097152tweets.6",
+//		"/usr/local/ss15psys/2097152tweets.7"
+//	};
+
 char FILE_PATH[8][255] = {
-		"/usr/local/ss15psys/2097152tweets.0",
+		"../Debug/65536tweets.0",
 		"/usr/local/ss15psys/2097152tweets.1",
 		"/usr/local/ss15psys/2097152tweets.2",
 		"/usr/local/ss15psys/2097152tweets.3",
@@ -182,14 +193,12 @@ int main(int argc, char* argv[]) {
     gettimeofday(&time1, NULL);
     microsec1 = ((unsigned long long) time1.tv_sec * 1000000) + time1.tv_usec;
 
-    printf("[Rank:%d]: test1\n",world_rank);
     fflush(stdout);
     tweetData_t **t = (tweetData_t **) malloc(NUMBER_OF_BUCKETS * sizeof(tweetData_t *));
     for (int k = 0; k < NUMBER_OF_BUCKETS; k++) {
         t[k] = (tweetData_t *) malloc(sizePerBucket[k] * sizeof(tweetData_t));
     }
 
-    printf("[Rank:%d]: test2\n",world_rank);
     fflush(stdout);
     for (int i = 0; i < NUMBER_OF_BUCKETS; i++) {
         for (unsigned long k = 0; k < sizePerBucket[i]; k++) {
@@ -197,7 +206,6 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    printf("[Rank:%d]: test3\n",world_rank);
     fflush(stdout);
     for (int k = (NUMBER_OF_BUCKETS / world_size)*world_rank; k < ((NUMBER_OF_BUCKETS / world_size)*world_rank) + (NUMBER_OF_BUCKETS / world_size); k++) {
         quickSort(t[k],sizePerBucket[k]);
@@ -210,9 +218,12 @@ int main(int argc, char* argv[]) {
     gettimeofday(&time1, NULL);
     microsec1 = ((unsigned long long) time1.tv_sec * 1000000) + time1.tv_usec;
 
-    printf("[Rank:%d]: test4\n",world_rank);
     fflush(stdout);
-    FILE *f = fopen(OUTPUT_FILE_PATH, "w");
+
+    char outPutFileName[50];
+    sprintf (outPutFileName, "../Debug/out%d.txt", world_rank);
+
+    FILE *f = fopen(outPutFileName, "w");
     if (f == NULL)
     {
         printf("Error opening file!\n");
@@ -220,7 +231,7 @@ int main(int argc, char* argv[]) {
     }
 
 	/* print some text */
-    for (int i = 0; i < NUMBER_OF_BUCKETS; i++) {
+    for (int i = (NUMBER_OF_BUCKETS / world_size)*world_rank; i < ((NUMBER_OF_BUCKETS / world_size)*world_rank) + (NUMBER_OF_BUCKETS / world_size); i++) {
         unsigned long j = 0;
         for (int k = 0; k < sizePerBucket[i] ; k++) {
 			fprintf(f, "%s\n", t[i][k].line);
