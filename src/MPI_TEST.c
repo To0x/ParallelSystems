@@ -30,7 +30,7 @@ Name        : MPI_TEST.c
 #define SEND_INDEXES_TAG 1
 
 char *const OUTPUT_FILE_PATH = "../Debug/out";
-//char* FILE_PATH = "/usr/local/ss15psys/2097152tweets.0";
+
 //char FILE_PATH[8][255] = {
 //		"/usr/local/ss15psys/2097152tweets.0",
 //		"/usr/local/ss15psys/2097152tweets.1",
@@ -42,29 +42,27 @@ char *const OUTPUT_FILE_PATH = "../Debug/out";
 //		"/usr/local/ss15psys/2097152tweets.7"
 //	};
 
-//char FILE_PATH[8][255] = {
-//		"../Debug/65536tweets.0",
-//		"/usr/local/ss15psys/2097152tweets.1",
-//		"/usr/local/ss15psys/2097152tweets.2",
-//		"/usr/local/ss15psys/2097152tweets.3",
-//		"/usr/local/ss15psys/2097152tweets.4",
-//		"/usr/local/ss15psys/2097152tweets.5",
-//		"/usr/local/ss15psys/2097152tweets.6",
-//		"/usr/local/ss15psys/2097152tweets.7"
-//	};
-
 char FILE_PATH[8][255] = {
-		"./65536tweets.0",
-		"./2097152tweets.1",
-		"../Debug/2097152tweets.2",
-		"../Debug/2097152tweets.3",
-		"../Debug/2097152tweets.4",
-		"../Debug/2097152tweets.5",
-		"../Debug/2097152tweets.6",
-		"../Debug/2097152tweets.7"
+		"../Debug/65536tweets.0",
+		"/usr/local/ss15psys/2097152tweets.1",
+		"/usr/local/ss15psys/2097152tweets.2",
+		"/usr/local/ss15psys/2097152tweets.3",
+		"/usr/local/ss15psys/2097152tweets.4",
+		"/usr/local/ss15psys/2097152tweets.5",
+		"/usr/local/ss15psys/2097152tweets.6",
+		"/usr/local/ss15psys/2097152tweets.7"
 	};
 
-
+//char FILE_PATH[8][255] = {
+//		"./65536tweets.0",
+//		"./2097152tweets.1",
+//		"../Debug/2097152tweets.2",
+//		"../Debug/2097152tweets.3",
+//		"../Debug/2097152tweets.4",
+//		"../Debug/2097152tweets.5",
+//		"../Debug/2097152tweets.6",
+//		"../Debug/2097152tweets.7"
+//	};
 
 
 char* KEYWORD = "la";
@@ -101,15 +99,14 @@ ulong readAndInit(tweetData_t *allTweetData) {
     return numberOfTweets;
 }
 
-Bucket_t* sortInBuckets(int numberOfTweets, int world_size, int world_rank, tweetData_t *data) {
+Bucket_t* sortInBuckets(ulong numberOfTweets, int world_size, int world_rank, tweetData_t *data) {
 
     ulong delta = getIntervalDelta(numberOfTweets, world_size);
     //start:(delta * rank) - delta      ende:delta * rank
     int rank = 0;
     ulong **indexes = 0;
     Bucket_t *buckets = (Bucket_t*) malloc(NUMBER_OF_BUCKETS * sizeof(Bucket_t));
-    indexes = (ulong **) bucketSort(data, (size_t) numberOfTweets, NUMBER_OF_BUCKETS,delta * world_rank,delta *
-                                                                                                                world_rank + delta);
+    indexes = (ulong **) bucketSort(data, (size_t) numberOfTweets, NUMBER_OF_BUCKETS,delta * world_rank,delta * world_rank + delta);
     printf("Buckets filled\n");
 	for (int l = 0; l < NUMBER_OF_BUCKETS; l++) {
 		ulong j = 0;
