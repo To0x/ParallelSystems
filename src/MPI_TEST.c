@@ -18,9 +18,12 @@ Name        : MPI_TEST.c
 #include <time.h>
 #include <sys/time.h>
 
+#include "time.h"
+#include "common.h"
+
 #define NUMBEROFTWEETS 17000000
 #define NUMBER_OF_BUCKETS 8
-#define NUMBER_OF_NODES 1
+#define NUMBER_OF_NODES 8
 #define NUMBER_OF_FILES 1
 
 #define SEND_LENGTH_OF_INDEXES_TAG 0
@@ -39,65 +42,41 @@ char *const OUTPUT_FILE_PATH = "../Debug/out";
 //		"/usr/local/ss15psys/2097152tweets.7"
 //	};
 
-char FILE_PATH[8][255] = {
-		"../Debug/65536tweets.0",
-		"/usr/local/ss15psys/2097152tweets.1",
-		"/usr/local/ss15psys/2097152tweets.2",
-		"/usr/local/ss15psys/2097152tweets.3",
-		"/usr/local/ss15psys/2097152tweets.4",
-		"/usr/local/ss15psys/2097152tweets.5",
-		"/usr/local/ss15psys/2097152tweets.6",
-		"/usr/local/ss15psys/2097152tweets.7"
-	};
-
 //char FILE_PATH[8][255] = {
-//		"../Debug/2097152tweets.0",
-//		"../Debug/2097152tweets.1",
-//		"../Debug/2097152tweets.2",
-//		"../Debug/2097152tweets.3",
-//		"../Debug/2097152tweets.4",
-//		"../Debug/2097152tweets.5",
-//		"../Debug/2097152tweets.6",
-//		"../Debug/2097152tweets.7"
+//		"../Debug/65536tweets.0",
+//		"/usr/local/ss15psys/2097152tweets.1",
+//		"/usr/local/ss15psys/2097152tweets.2",
+//		"/usr/local/ss15psys/2097152tweets.3",
+//		"/usr/local/ss15psys/2097152tweets.4",
+//		"/usr/local/ss15psys/2097152tweets.5",
+//		"/usr/local/ss15psys/2097152tweets.6",
+//		"/usr/local/ss15psys/2097152tweets.7"
 //	};
+
+char FILE_PATH[8][255] = {
+		"./65536tweets.0",
+		"./2097152tweets.1",
+		"../Debug/2097152tweets.2",
+		"../Debug/2097152tweets.3",
+		"../Debug/2097152tweets.4",
+		"../Debug/2097152tweets.5",
+		"../Debug/2097152tweets.6",
+		"../Debug/2097152tweets.7"
+	};
 
 
 
 
 char* KEYWORD = "la";
 
-unsigned long getIntervalDelta(unsigned long numberOfTweets, int nodes){
+ulong getIntervalDelta(ulong numberOfTweets, int nodes){
     return numberOfTweets/nodes;
 }
 
-int main(int argc, char* argv[]) {
-    MPI_Init(NULL, NULL);
-    int world_size; /* number of processes */
-    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+ulong readAndInit(tweetData_t *allTweetData) {
+    ulong numberOfTweets = 0;
+    tweetData_t *td = NULL;
 
-    // MPI Initializations
-    int world_rank; /* rank of process */
-    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-
-//    MPI_Status status; /* return status for receive */
-    printf("world_rank: %d\n", world_rank);
-    printf("world_size: %d\n", world_size);
-
-	// Show keyword
-	printf("Tweets will be sorted by keyword '%s'.\n",KEYWORD);
-
-	struct timeval time1, time2;
-	unsigned long long timeToReadAndInit = 0l, timeToSortInBuckets = 0l, timeToSort = 0l,timeToCommunicate = 0l, timeToWrite = 0l, timeForAll = 0l,
-			microsec1, microsec2;
-
-	tweetData_t *td;
-	printf("try to allocate %lu kbytes\n",
-			(sizeof(tweetData_t*) * NUMBEROFTWEETS) / 1000);
-
-    gettimeofday(&time1, NULL);
-    tweetData_t *test = (tweetData_t*) malloc(sizeof(tweetData_t) * (NUMBEROFTWEETS+1));
-    unsigned long numberOfTweets = 0;
-    // File Initializations
     for(int i = 0; i < NUMBER_OF_FILES; i++){
         FILE *fp;
         fp = fopen(FILE_PATH[i], "rb, ccs=UTF-8");
@@ -107,49 +86,85 @@ int main(int argc, char* argv[]) {
             exit(EXIT_FAILURE);
         }
 
-		microsec1 = ((unsigned long long) time1.tv_sec * 1000000) + time1.tv_usec;
-	    unsigned long index = 0;
+	    ulong index = 0;
 		while (!feof(fp)) {
 			unsigned char *line = readLine(fp);
 
 			td = parseTweet(line, KEYWORD);
 	        td->index = index++;
-			test[numberOfTweets] = *td;
+			allTweetData[numberOfTweets] = *td;
 			numberOfTweets++;
 		}
 		fclose(fp);
 	}
-	// Calc time
-	gettimeofday(&time2, NULL);
-	microsec2 = ((unsigned long long) time2.tv_sec * 1000000) + time2.tv_usec;
-	timeToReadAndInit = (microsec2 - microsec1) / 1000000;
 
+    return numberOfTweets;
+}
 
-	gettimeofday(&time1, NULL);
-	microsec1 = ((unsigned long long) time1.tv_sec * 1000000) + time1.tv_usec;
-    unsigned long delta = getIntervalDelta(numberOfTweets, world_size);
+Bucket_t* sortInBuckets(int numberOfTweets, int world_size, int world_rank, tweetData_t *data) {
+
+    ulong delta = getIntervalDelta(numberOfTweets, world_size);
     //start:(delta * rank) - delta      ende:delta * rank
     int rank = 0;
-    unsigned long **indexes = 0;
-    indexes = (unsigned long **) bucketSort(test, (size_t) numberOfTweets, NUMBER_OF_BUCKETS,delta * world_rank,delta *
+    ulong **indexes = 0;
+    Bucket_t *buckets = (Bucket_t*) malloc(NUMBER_OF_BUCKETS * sizeof(Bucket_t));
+    indexes = (ulong **) bucketSort(data, (size_t) numberOfTweets, NUMBER_OF_BUCKETS,delta * world_rank,delta *
                                                                                                                 world_rank + delta);
     printf("Buckets filled\n");
-	unsigned long sizePerBucket[NUMBER_OF_BUCKETS];
 	for (int l = 0; l < NUMBER_OF_BUCKETS; l++) {
-		unsigned long j = 0;
-		while(indexes[l][j] != ULONG_MAX) {
+		ulong j = 0;
+		buckets[l].indizes = indexes[l];
+		while(buckets[l].indizes[j] != ULONG_MAX) {
 			j++;
 		}
-		sizePerBucket[l] = j;
+		buckets[l].sizeOfBucket = j;
 	}
-    gettimeofday(&time2, NULL);
-    microsec2 = ((unsigned long long) time2.tv_sec * 1000000) + time2.tv_usec;
-    timeToSortInBuckets = (microsec2 - microsec1) / 1000000;
 
+	return buckets;
+}
 
-    gettimeofday(&time1, NULL);
-    microsec1 = ((unsigned long long) time1.tv_sec * 1000000) + time1.tv_usec;
+tweetData_t **sortTweets(Bucket_t *buckets, tweetData_t *data, int world_size, int world_rank) {
+    tweetData_t **t = (tweetData_t **) malloc(NUMBER_OF_BUCKETS * sizeof(tweetData_t *));
+    for (int k = 0; k < NUMBER_OF_BUCKETS; k++) {
+    	t[k] = (tweetData_t *) malloc(buckets[k].sizeOfBucket * sizeof(tweetData_t));
+    }
 
+    for (int i = 0; i < NUMBER_OF_BUCKETS; i++) {
+        for (ulong k = 0; k < buckets[i].sizeOfBucket; k++) {
+        	t[i][k] = data[buckets[i].indizes[k]];
+        }
+    }
+
+    for (int k = (NUMBER_OF_BUCKETS / world_size)*world_rank; k < ((NUMBER_OF_BUCKETS / world_size)*world_rank) + (NUMBER_OF_BUCKETS / world_size); k++) {
+        quickSort(t[k],buckets[k].sizeOfBucket);
+    }
+    return t;
+}
+
+void writeFile(int world_rank, int world_size, Bucket_t *buckets, tweetData_t **t) {
+    char outPutFileName[255];
+    sprintf (outPutFileName, "./out_%d.txt", world_rank);
+
+    FILE *f = fopen(outPutFileName, "w");
+    if (f == NULL)
+    {
+        fprintf(stderr, "Error opening file!\n");
+        fflush(stdout);
+        exit(1);
+    }
+
+	/* print some text */
+    for (int i = (NUMBER_OF_BUCKETS / world_size)*world_rank; i < ((NUMBER_OF_BUCKETS / world_size)*world_rank) + (NUMBER_OF_BUCKETS / world_size); i++) {
+        ulong j = 0;
+        for (int k = 0; k < buckets[i].sizeOfBucket ; k++) {
+			fprintf(f, "%s\n", t[i][k].line);
+           j++;
+        }
+    }
+	fclose(f);
+}
+
+void communicate(int world_size, int world_rank, Bucket_t *buckets) {
     int bucketsPerNode = NUMBER_OF_BUCKETS / world_size;
 
     if (world_size != 1) {
@@ -160,115 +175,103 @@ int main(int argc, char* argv[]) {
                 for (int j = 0; j < world_size; j++) {
                     if (j != world_rank) {
                         for (int k = (NUMBER_OF_BUCKETS / world_size)*j; k < ((NUMBER_OF_BUCKETS / world_size)*j) + (NUMBER_OF_BUCKETS / world_size); k++) {
-                            MPI_Send(&sizePerBucket[k], 1, MPI_UNSIGNED_LONG, j, SEND_LENGTH_OF_INDEXES_TAG,MPI_COMM_WORLD);
-                            MPI_Send(&indexes[k][0], sizePerBucket[k], MPI_UNSIGNED_LONG, j, SEND_INDEXES_TAG,MPI_COMM_WORLD);
+                        	MPI_Send(&buckets[k].sizeOfBucket, 1, MPI_UNSIGNED_LONG, j, SEND_LENGTH_OF_INDEXES_TAG,MPI_COMM_WORLD);
+                            MPI_Send(&buckets[k].indizes[0], buckets[k].sizeOfBucket, MPI_UNSIGNED_LONG, j, SEND_INDEXES_TAG,MPI_COMM_WORLD);
                         }
                     }
                 }
             } else {
                 for (int k = (NUMBER_OF_BUCKETS / world_size)*world_rank; k < ((NUMBER_OF_BUCKETS / world_size)*world_rank) + (NUMBER_OF_BUCKETS / world_size); k++) {
-                    unsigned long increaseBucketSizeBy = 0;
+                    ulong increaseBucketSizeBy = 0;
                     MPI_Recv(&increaseBucketSizeBy, 1, MPI_UNSIGNED_LONG, i, SEND_LENGTH_OF_INDEXES_TAG, MPI_COMM_WORLD,
                              MPI_STATUS_IGNORE);
-                    unsigned long indexesFromOtherNode[increaseBucketSizeBy];
-                    unsigned long oldBucketSize = sizePerBucket[k];
+                    ulong indexesFromOtherNode[increaseBucketSizeBy];
+                    ulong oldBucketSize = buckets[k].sizeOfBucket;
                     MPI_Recv(&indexesFromOtherNode, increaseBucketSizeBy, MPI_UNSIGNED_LONG, i, SEND_INDEXES_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                    indexes[k] = realloc(indexes[k], (sizePerBucket[k]+increaseBucketSizeBy) * sizeof(unsigned long));
-                    sizePerBucket[k] += increaseBucketSizeBy;
-                    for (unsigned long j = oldBucketSize; j < sizePerBucket[k]; j++) {
-                        indexes[k][j] = indexesFromOtherNode[j-oldBucketSize];
-//                        printf("[Rank:%d]:  indexes[%d][%lu] --> %lu\n", world_rank, k, j, indexes[k][j]);
+                    buckets[k].indizes = realloc(buckets[k].indizes, (buckets[k].sizeOfBucket+increaseBucketSizeBy) * sizeof(ulong));
+                    buckets[k].sizeOfBucket += increaseBucketSizeBy;
+                    for (ulong j = oldBucketSize; j < buckets[k].sizeOfBucket; j++) {
+                    	buckets[k].indizes[j] = indexesFromOtherNode[j-oldBucketSize];
                     }
-                    printf("[Rank:%d]: sizePerBucket[%d] is %lu\n", world_rank, k, sizePerBucket[k]);
+                    printf("[Rank:%d]: sizePerBucket[%d] is %lu\n", world_rank, k, buckets[k].sizeOfBucket);
                     fflush(stdout);
                 }
             }
         }
         printf("[Rank:%d]: Finnished communication\n",world_rank);
     }
-    gettimeofday(&time2, NULL);
-    microsec2 = ((unsigned long long) time2.tv_sec * 1000000) + time2.tv_usec;
-    timeToCommunicate = (microsec2 - microsec1) / 1000000;
 
-    gettimeofday(&time1, NULL);
-    microsec1 = ((unsigned long long) time1.tv_sec * 1000000) + time1.tv_usec;
+}
 
-    fflush(stdout);
-    tweetData_t **t = (tweetData_t **) malloc(NUMBER_OF_BUCKETS * sizeof(tweetData_t *));
-    for (int k = 0; k < NUMBER_OF_BUCKETS; k++) {
-        t[k] = (tweetData_t *) malloc(sizePerBucket[k] * sizeof(tweetData_t));
+int main(int argc, char* argv[]) {
+
+	char hostname[256];
+
+	int world_size = -1,
+		world_rank = -1;
+
+	myTimer *timer_readAndInit,
+			*timer_sortInBuckets,
+			*timer_communicate,
+			*timer_qsort,
+			*timer_write;
+
+	ullong numberOfTweets = 0,
+		   time_readAndInit = 0,
+		   time_sortInBuckets = 0,
+		   time_communicate = 0,
+		   time_qsort = 0,
+		   time_write = 0,
+		   time_all = 0;
+
+	tweetData_t	*td,
+				*data;
+
+    MPI_Init(NULL, NULL);
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
+	// Show keyword
+    if (world_rank == 0) {
+		printf("Tweets will be sorted by keyword '%s'.\n",KEYWORD);
+		printf("try to allocate %lu kbytes for each node\n", (sizeof(tweetData_t*) * NUMBEROFTWEETS) / 1000);
     }
-
-    fflush(stdout);
-    for (int i = 0; i < NUMBER_OF_BUCKETS; i++) {
-        for (unsigned long k = 0; k < sizePerBucket[i]; k++) {
-            t[i][k] = test[indexes[i][k]];
-        }
-    }
-
-    fflush(stdout);
-    for (int k = (NUMBER_OF_BUCKETS / world_size)*world_rank; k < ((NUMBER_OF_BUCKETS / world_size)*world_rank) + (NUMBER_OF_BUCKETS / world_size); k++) {
-        quickSort(t[k],sizePerBucket[k]);
-    }
-
-    gettimeofday(&time2, NULL);
-    microsec2 = ((unsigned long long) time2.tv_sec * 1000000) + time2.tv_usec;
-    timeToSort = (microsec2 - microsec1) / 1000000;
-
-    gettimeofday(&time1, NULL);
-    microsec1 = ((unsigned long long) time1.tv_sec * 1000000) + time1.tv_usec;
-
-    fflush(stdout);
-
-    char outPutFileName[50];
-    sprintf (outPutFileName, "../Debug/out%d.txt", world_rank);
-
-    FILE *f = fopen(outPutFileName, "w");
-    if (f == NULL)
-    {
-        printf("Error opening file!\n");
-        exit(1);
-    }
-
-	/* print some text */
-    for (int i = (NUMBER_OF_BUCKETS / world_size)*world_rank; i < ((NUMBER_OF_BUCKETS / world_size)*world_rank) + (NUMBER_OF_BUCKETS / world_size); i++) {
-        unsigned long j = 0;
-        for (int k = 0; k < sizePerBucket[i] ; k++) {
-			fprintf(f, "%s\n", t[i][k].line);
-           j++;
-        }
-    }
-	fclose(f);
+	data = (tweetData_t*) malloc((NUMBEROFTWEETS+1) * sizeof(tweetData_t));
 
 
-	gettimeofday(&time2, NULL);
-	microsec2 = ((unsigned long long) time2.tv_sec * 1000000) + time2.tv_usec;
-	timeToWrite = (microsec2 - microsec1) / 1000000;
+	timer_readAndInit = startTimer();
+	numberOfTweets = readAndInit(data);
+	time_readAndInit = stopTimer(timer_readAndInit);
 
+	timer_sortInBuckets = startTimer();
+	Bucket_t *buckets = sortInBuckets(numberOfTweets, world_size, world_rank, data);
+	time_sortInBuckets = stopTimer(timer_sortInBuckets);
+
+	timer_communicate = startTimer();
+	communicate(world_size, world_rank, buckets);
+    time_communicate = stopTimer(timer_communicate);
+
+    timer_qsort = startTimer();
+    tweetData_t **t = sortTweets(buckets, data, world_size, world_rank);
+	MPI_Barrier(MPI_COMM_WORLD);
+	time_qsort = stopTimer(timer_qsort); // den timer erst nach der Barriere stoppen, damit die maximale sortierzeit erfasst wird!
+
+	timer_write = startTimer();
+	writeFile(world_rank, world_size, buckets, t);
+	time_write = stopTimer(timer_write);
+
+	MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
-    timeForAll = timeToReadAndInit + timeToSort + timeToWrite + timeToCommunicate + timeToSortInBuckets;
-    printf("Read & Init:\t\t%llu Sec.\n", timeToReadAndInit);
-    printf("Sort in buckets:\t%llu Sec.\n", timeToSortInBuckets);
-    printf("Communication:\t\t%llu Sec.\n", timeToCommunicate);
-    printf("Sort:\t\t\t%llu Sec.\n", timeToSort);
-    printf("Write:\t\t\t%llu Sec.\n", timeToWrite);
-    printf("All:\t\t\t%llu Sec.\n", timeForAll);
 
-	return 0;
+	if (world_rank == 0) {
+		time_all = time_readAndInit + time_sortInBuckets + time_write + time_communicate + time_qsort;
+		printf("Read & Init:\t\t%llu Sec.\n", time_readAndInit);
+		printf("Sort in buckets:\t%llu Sec.\n", time_sortInBuckets);
+		printf("Communication:\t\t%llu Sec.\n", time_communicate);
+		printf("Sort:\t\t\t%llu Sec.\n", time_qsort);
+		printf("Write:\t\t\t%llu Sec.\n", time_write);
+		printf("All:\t\t\t%llu Sec.\n", time_all);
+	}
 
-	// use strlen+1 so that '\0' get transmitted
-	// MPI_Send(message, strlen(message)+1, MPI_CHAR,
-	//   dest, tag, MPI_COMM_WORLD);
-
-	/*	} else {
-	 printf("Hello MPI World From process 0: Num processes: %d\n", p);
-	 for (source = 1; source < p; source++) {
-	 MPI_Recv(message, 100, MPI_CHAR, source, tag, MPI_COMM_WORLD,
-	 &status);
-	 printf("%s\n", message);
-	 }
-	 }
-	 /* shut down MPI */
-	//	MPI_Finalize();
 	return 0;
 }

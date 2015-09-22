@@ -8,6 +8,13 @@
 #ifndef BUCKETSORT_H_
 #define BUCKETSORT_H_
 
+typedef struct Bucket {
+
+	unsigned long sizeOfBucket;
+	unsigned long *indizes;
+
+} Bucket_t;
+
 float quickSort(struct tweetData *toSort, long len);
 tweetData_t *getPivotElements(tweetData_t *toSort, int buckets);
 unsigned long bucketSort(tweetData_t *toSort, size_t len, int buckets , unsigned long startIndex, unsigned long endIndex);
