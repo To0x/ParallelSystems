@@ -46,6 +46,37 @@ tweetData_t *getPivotElements(tweetData_t *toSort, int buckets){
 // return -1 if tw2 > tw1
 // return 0 if equals
 
+int compareUnicodesFromTweets(tweetData_t tw1, tweetData_t tw2, unsigned long long int offset) {
+    static int indexOfReferenceUnicode = 0;
+    if(indexOfReferenceUnicode >= NUMBER_OF_UNI_CODES_TO_CHECK){
+        indexOfReferenceUnicode = 0;
+        return 0;
+    }
+    unsigned long long int uni1, uni2 = 0;
+    int noMoreResults1, noMoreResults2;
+    int uniCount1, uniCount2 = 0;
+    uni1 = getSmallestUnicode(tw1.line, offset, &uniCount1, &noMoreResults1);
+    uni2 = getSmallestUnicode(tw2.line, offset, &uniCount2, &noMoreResults2);
+
+    if (uni1 < uni2) {
+        return 1;
+    } else if (uni1 > uni2) {
+        return -1;
+    } else {
+        if (uniCount1 > uniCount2) {
+            indexOfReferenceUnicode = 0;
+            return 1;
+        }
+        else if (uniCount1 < uniCount2) {
+            indexOfReferenceUnicode = 0;
+            return -1;
+        }
+        else
+            indexOfReferenceUnicode++;
+        return compareUnicodesFromTweets(tw1, tw2, uni1);
+    }
+}
+
 int compareTweet(tweetData_t tw1, tweetData_t tw2) {
 //    printf("-----------------------------------------------------\n");
 //    printf("tw1 --> %u \t %llu \t %d\n",tw1.keywords, tw1.smallestUniCode, tw1.countSmallest );
@@ -56,18 +87,7 @@ int compareTweet(tweetData_t tw1, tweetData_t tw2) {
     else if (tw2.keywords > tw1.keywords)
         return -1;
     else {
-        if (tw1.smallestUniCode < tw2.smallestUniCode)
-            return 1;
-        else if (tw2.smallestUniCode < tw1.smallestUniCode)
-            return -1;
-        else {
-            if (tw1.countSmallest > tw2.countSmallest)
-                return 1;
-            else if (tw2.countSmallest > tw1.countSmallest)
-                return -1;
-            else
-                return 0;
-        }
+        return compareUnicodesFromTweets(tw1,  tw2, 0);
     }
 }
 
@@ -78,7 +98,7 @@ void printPivotElements(tweetData_t *elements, int numberOfBuckets) {
     }
 
 	for (int i = 0 ; i < numberOfBuckets-1 ; i++) {
-		printf("bucketNr: %d \t keyword:%d \t unicode: %llu \t count: %d \t line: %s\n",i, elements[i].keywords, elements[i].smallestUniCode, elements[i].countSmallest, elements[i].line );
+		printf("bucketNr: %d \t keyword:%d \t unicode: %llu \t count: %d \t line: %s\n",i, elements[i].keywords, elements[i].smallestUniCode, elements[i].countSmallest, "elements[i].line" );
 	}
 
 }
@@ -103,7 +123,7 @@ int calculateBucketToInsert(tweetData_t toSort, tweetData_t *bucketRanges, int b
 
 unsigned long** bucketSort(tweetData_t *toSort, size_t len, int buckets , unsigned long startIndex, unsigned long endIndex) {
     tweetData_t *bucketRanges = getPivotElements(toSort, buckets);
-//    printPivotElements(bucketRanges, buckets);
+    printPivotElements(bucketRanges, buckets);
 
 
     size_t *sizePerBucket = malloc(buckets * sizeof(size_t));

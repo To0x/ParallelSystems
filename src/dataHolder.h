@@ -7,7 +7,7 @@
 
 #ifndef DATAHOLDER_H_
 #define DATAHOLDER_H_
-
+#define NUMBER_OF_UNI_CODES_TO_CHECK 25
 typedef struct tweetData {
 
 	unsigned char *line;

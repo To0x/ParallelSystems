@@ -22,7 +22,7 @@ Name        : MPI_TEST.c
 #include "common.h"
 
 #define NUMBEROFTWEETS 17000000
-#define NUMBER_OF_BUCKETS 8
+#define NUMBER_OF_BUCKETS 64
 #define NUMBER_OF_NODES 8
 #define NUMBER_OF_FILES 1
 
@@ -234,7 +234,6 @@ int main(int argc, char* argv[]) {
 		printf("try to allocate %lu kbytes for each node\n", (sizeof(tweetData_t*) * NUMBEROFTWEETS) / 1000);
     }
 	data = (tweetData_t*) malloc((NUMBEROFTWEETS+1) * sizeof(tweetData_t));
-
 
 	timer_readAndInit = startTimer();
 	numberOfTweets = readAndInit(data);
