@@ -14,4 +14,11 @@ typedef unsigned long long ullong;
 typedef unsigned long ulong;
 typedef unsigned long long int ullint;
 
+typedef struct arguments {
+	int numBuckets;
+	char *keyword;
+} argument_t;
+
+int isnumeric(char *str);
+
 #endif /* COMMON_H_ */

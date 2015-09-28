@@ -17,6 +17,7 @@ Name        : MPI_TEST.c
 #include <mpi.h>
 #include <time.h>
 #include <sys/time.h>
+#include <string.h>
 
 #include "time.h"
 #include "common.h"
@@ -43,7 +44,7 @@ char *const OUTPUT_FILE_PATH = "../Debug/out";
 //	};
 
 char FILE_PATH[8][255] = {
-		"../Debug/65536tweets.0",
+		"./65536tweets.0",
 		"/usr/local/ss15psys/2097152tweets.1",
 		"/usr/local/ss15psys/2097152tweets.2",
 		"/usr/local/ss15psys/2097152tweets.3",
@@ -66,6 +67,8 @@ char FILE_PATH[8][255] = {
 
 
 char* KEYWORD = "la";
+
+argument_t *arguments;
 
 ulong getIntervalDelta(ulong numberOfTweets, int nodes){
     return numberOfTweets/nodes;
@@ -105,10 +108,10 @@ Bucket_t* sortInBuckets(ulong numberOfTweets, int world_size, int world_rank, tw
     //start:(delta * rank) - delta      ende:delta * rank
     int rank = 0;
     ulong **indexes = 0;
-    Bucket_t *buckets = (Bucket_t*) malloc(NUMBER_OF_BUCKETS * sizeof(Bucket_t));
-    indexes = (ulong **) bucketSort(data, (size_t) numberOfTweets, NUMBER_OF_BUCKETS,delta * world_rank,delta * world_rank + delta);
+    Bucket_t *buckets = (Bucket_t*) malloc(arguments->numBuckets * sizeof(Bucket_t));
+    indexes = (ulong **) bucketSort(data, (size_t) numberOfTweets, arguments->numBuckets,delta * world_rank,delta * world_rank + delta);
     printf("Buckets filled\n");
-	for (int l = 0; l < NUMBER_OF_BUCKETS; l++) {
+	for (int l = 0; l < arguments->numBuckets; l++) {
 		ulong j = 0;
 		buckets[l].indizes = indexes[l];
 		while(buckets[l].indizes[j] != ULONG_MAX) {
@@ -121,18 +124,18 @@ Bucket_t* sortInBuckets(ulong numberOfTweets, int world_size, int world_rank, tw
 }
 
 tweetData_t **sortTweets(Bucket_t *buckets, tweetData_t *data, int world_size, int world_rank) {
-    tweetData_t **t = (tweetData_t **) malloc(NUMBER_OF_BUCKETS * sizeof(tweetData_t *));
-    for (int k = 0; k < NUMBER_OF_BUCKETS; k++) {
+    tweetData_t **t = (tweetData_t **) malloc(arguments->numBuckets * sizeof(tweetData_t *));
+    for (int k = 0; k < arguments->numBuckets; k++) {
     	t[k] = (tweetData_t *) malloc(buckets[k].sizeOfBucket * sizeof(tweetData_t));
     }
 
-    for (int i = 0; i < NUMBER_OF_BUCKETS; i++) {
+    for (int i = 0; i < arguments->numBuckets; i++) {
         for (ulong k = 0; k < buckets[i].sizeOfBucket; k++) {
         	t[i][k] = data[buckets[i].indizes[k]];
         }
     }
 
-    for (int k = (NUMBER_OF_BUCKETS / world_size)*world_rank; k < ((NUMBER_OF_BUCKETS / world_size)*world_rank) + (NUMBER_OF_BUCKETS / world_size); k++) {
+    for (int k = (arguments->numBuckets / world_size)*world_rank; k < ((arguments->numBuckets / world_size)*world_rank) + (arguments->numBuckets / world_size); k++) {
         quickSort(t[k],buckets[k].sizeOfBucket);
     }
     return t;
@@ -151,7 +154,7 @@ void writeFile(int world_rank, int world_size, Bucket_t *buckets, tweetData_t **
     }
 
 	/* print some text */
-    for (int i = (NUMBER_OF_BUCKETS / world_size)*world_rank; i < ((NUMBER_OF_BUCKETS / world_size)*world_rank) + (NUMBER_OF_BUCKETS / world_size); i++) {
+    for (int i = (arguments->numBuckets / world_size)*world_rank; i < ((arguments->numBuckets / world_size)*world_rank) + (arguments->numBuckets / world_size); i++) {
         ulong j = 0;
         for (int k = 0; k < buckets[i].sizeOfBucket ; k++) {
 			fprintf(f, "%s\n", t[i][k].line);
@@ -162,7 +165,7 @@ void writeFile(int world_rank, int world_size, Bucket_t *buckets, tweetData_t **
 }
 
 void communicate(int world_size, int world_rank, Bucket_t *buckets) {
-    int bucketsPerNode = NUMBER_OF_BUCKETS / world_size;
+    int bucketsPerNode = arguments->numBuckets / world_size;
 
     if (world_size != 1) {
         printf("Starting communication\n");
@@ -171,14 +174,14 @@ void communicate(int world_size, int world_rank, Bucket_t *buckets) {
             if (world_rank == i) {
                 for (int j = 0; j < world_size; j++) {
                     if (j != world_rank) {
-                        for (int k = (NUMBER_OF_BUCKETS / world_size)*j; k < ((NUMBER_OF_BUCKETS / world_size)*j) + (NUMBER_OF_BUCKETS / world_size); k++) {
+                        for (int k = (arguments->numBuckets / world_size)*j; k < ((arguments->numBuckets / world_size)*j) + (arguments->numBuckets / world_size); k++) {
                         	MPI_Send(&buckets[k].sizeOfBucket, 1, MPI_UNSIGNED_LONG, j, SEND_LENGTH_OF_INDEXES_TAG,MPI_COMM_WORLD);
                             MPI_Send(&buckets[k].indizes[0], buckets[k].sizeOfBucket, MPI_UNSIGNED_LONG, j, SEND_INDEXES_TAG,MPI_COMM_WORLD);
                         }
                     }
                 }
             } else {
-                for (int k = (NUMBER_OF_BUCKETS / world_size)*world_rank; k < ((NUMBER_OF_BUCKETS / world_size)*world_rank) + (NUMBER_OF_BUCKETS / world_size); k++) {
+                for (int k = (arguments->numBuckets / world_size)*world_rank; k < ((arguments->numBuckets / world_size)*world_rank) + (arguments->numBuckets / world_size); k++) {
                     ulong increaseBucketSizeBy = 0;
                     MPI_Recv(&increaseBucketSizeBy, 1, MPI_UNSIGNED_LONG, i, SEND_LENGTH_OF_INDEXES_TAG, MPI_COMM_WORLD,
                              MPI_STATUS_IGNORE);
@@ -201,6 +204,71 @@ void communicate(int world_size, int world_rank, Bucket_t *buckets) {
 }
 
 int main(int argc, char* argv[]) {
+
+    int numBuckets = -1;
+
+    int parameter = -1;
+    int valueExpected = 0;
+
+    arguments = (argument_t*) malloc(sizeof(argument_t));
+    arguments->keyword = (char*) malloc(strlen(KEYWORD) * sizeof(char));
+    arguments->keyword = KEYWORD;
+    arguments->numBuckets = NUMBER_OF_BUCKETS;
+
+    // 1 = buckets
+    // 2 = keyword
+
+    
+    if (argc > 1) {
+        for (int i = 0; i < argc; i++) {
+
+            if (valueExpected == 1) {                
+                switch (parameter) {
+
+                    case 1: {
+                        if (isnumeric(argv[i]) == 1) {
+                            arguments->numBuckets = atoi(argv[i]);
+                            //numBuckets = atoi(argv[i]);
+                        } else {
+                            valueExpected = -1;
+                            break;
+                        }
+                        valueExpected = 0;
+                        break;
+                    }
+                    case 2: {
+                        /*arguments->keyword = (char*) realloc(&(arguments->keyword), strlen(argv[i]) * sizeof(char));
+                        strcpy(arguments->keyword, argv[i]);
+                        printf("arg-kw: %s", arguments->keyword); fflush(stdout);
+                        valueExpected = 0;
+                        */
+                        break;
+                    }
+                    default: {
+                        valueExpected = -1;
+                        break;
+                    }
+                }
+            } else {
+
+                if (strcmp(argv[i], "-b") == 0) {
+                    parameter = 1;
+                    valueExpected = 1;
+                    continue;
+                }
+                if (strcmp(argv[i], "-k") == 0) {
+                    parameter = 2;
+                    valueExpected = 1;
+                    printf("Keyword via parameter is not supported yet!\n");
+                    continue;
+                }
+            }
+
+            if (valueExpected == -1) {
+                printf("wrong parameter!");
+            }
+        }
+    }
 
 	char hostname[256];
 
@@ -230,7 +298,8 @@ int main(int argc, char* argv[]) {
 
 	// Show keyword
     if (world_rank == 0) {
-		printf("Tweets will be sorted by keyword '%s'.\n",KEYWORD);
+		printf("Tweets will be sorted by keyword '%s'.\n",arguments->keyword);
+        printf("Buckets used for sorting: %d\n", arguments->numBuckets);
 		printf("try to allocate %lu kbytes for each node\n", (sizeof(tweetData_t*) * NUMBEROFTWEETS) / 1000);
     }
 	data = (tweetData_t*) malloc((NUMBEROFTWEETS+1) * sizeof(tweetData_t));

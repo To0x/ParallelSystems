@@ -52,6 +52,6 @@ unsigned char *readLine(FILE *file) {
     }
 
     lineBuffer[count] = '\0';
-    //realloc(lineBuffer, count+1);
+    realloc(lineBuffer, count+1);
     return lineBuffer;  // TODO: Returning 'char*' from a function returning 'unsigned char*': Incompatible pointer types 'unsigned char*' and 'char*'
 }
