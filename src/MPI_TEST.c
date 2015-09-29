@@ -23,9 +23,9 @@ Name        : MPI_TEST.c
 #include "common.h"
 
 #define NUMBEROFTWEETS 17000000
-#define NUMBER_OF_BUCKETS 64
+#define NUMBER_OF_BUCKETS 8
 #define NUMBER_OF_NODES 8
-#define NUMBER_OF_FILES 1
+#define NUMBER_OF_FILES 8
 
 #define SEND_LENGTH_OF_INDEXES_TAG 0
 #define SEND_INDEXES_TAG 1
@@ -44,7 +44,7 @@ char *const OUTPUT_FILE_PATH = "../Debug/out";
 //	};
 
 char FILE_PATH[8][255] = {
-		"./65536tweets.0",
+		"/usr/local/ss15psys/2097152tweets.0",
 		"/usr/local/ss15psys/2097152tweets.1",
 		"/usr/local/ss15psys/2097152tweets.2",
 		"/usr/local/ss15psys/2097152tweets.3",
@@ -144,6 +144,7 @@ tweetData_t **sortTweets(Bucket_t *buckets, tweetData_t *data, int world_size, i
 void writeFile(int world_rank, int world_size, Bucket_t *buckets, tweetData_t **t) {
     char outPutFileName[255];
     sprintf (outPutFileName, "./out_%d.txt", world_rank);
+    sprintf (outPutFileName, "/usr/local/ss15psys/out_%d.txt", world_rank);
 
     FILE *f = fopen(outPutFileName, "w");
     if (f == NULL)

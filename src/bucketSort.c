@@ -13,7 +13,7 @@
 #include <stdbool.h>
 
 
-#define PIVOT_SET_SIZE 1000
+#define PIVOT_SET_SIZE 10000
 #define SIZE_PER_BUCKET 100000
 #define DEBUG 1
 
